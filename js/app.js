@@ -1,31 +1,19 @@
-/* Soyağacım — tarayıcıda çalışan aile ağacı uygulaması
- * Veri localStorage'da saklanır; sunucu gerekmez. */
+/* =====================================================================
+ *  Soyağacım — UI / uygulama mantığı
+ *  Veriye Data.* ve Auth.* üzerinden erişir (bkz. js/data.js).
+ *  ===================================================================== */
 const App = (() => {
   "use strict";
 
-  const STORAGE_KEY = "soyagacim_v1";
-  let state = { people: [], rootId: null, zoom: 1 };
-
-  /* ---------- Depolama ---------- */
-  function load() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) state = Object.assign(state, JSON.parse(raw));
-    } catch (e) { console.warn("Veri yüklenemedi", e); }
-  }
-  function save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }
-  function uid() {
-    return "p" + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
-  }
+  let people = [];           // önbelleğe alınmış kişi listesi
+  let rootId = null;
+  let zoom = 1;
+  let currentAlbum = null;
 
   /* ---------- Yardımcılar ---------- */
-  const byId = (id) => state.people.find((p) => p.id === id);
-  function fullName(p) {
-    return [p.firstName, p.lastName].filter(Boolean).join(" ") || "İsimsiz";
-  }
-  function year(d) { return d ? String(d).slice(0, 4) : ""; }
+  const byId = (id) => people.find((p) => p.id === id);
+  const fullName = (p) => [p.firstName, p.lastName].filter(Boolean).join(" ") || "İsimsiz";
+  const year = (d) => (d ? String(d).slice(0, 4) : "");
   function lifeSpan(p) {
     const b = year(p.birthDate), d = year(p.deathDate);
     if (b && d) return `${b} – ${d}`;
@@ -33,295 +21,194 @@ const App = (() => {
     if (d) return `? – ${d}`;
     return "";
   }
-  function genderIcon(p) {
-    if (p.gender === "male") return "👨";
-    if (p.gender === "female") return "👩";
-    return "🧑";
-  }
-  function childrenOf(id) {
-    return state.people.filter((p) => (p.parents || []).includes(id));
-  }
-  function escapeHtml(s) {
-    return String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  }
+  const genderIcon = (p) => (p.gender === "male" ? "👨" : p.gender === "female" ? "👩" : "🧑");
+  const childrenOf = (id) => people.filter((p) => (p.parents || []).includes(id));
+  const escapeHtml = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const $ = (id) => document.getElementById(id);
 
-  /* ---------- Avatar ---------- */
   function avatarHtml(p, cls = "avatar") {
     if (p.photo) {
       return `<img class="${cls}" src="${escapeHtml(p.photo)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'${cls}',textContent:'${genderIcon(p)}'}))" />`;
     }
     return `<div class="${cls}">${genderIcon(p)}</div>`;
   }
-
-  /* ---------- Kişi kartı ---------- */
   function personCard(p) {
     const gcls = p.gender === "male" ? "male" : p.gender === "female" ? "female" : "";
     const span = lifeSpan(p);
     return `<div class="card ${gcls}" data-id="${p.id}" onclick="App.showDetail('${p.id}')">
-      ${avatarHtml(p)}
-      <div class="name">${escapeHtml(fullName(p))}</div>
+      ${avatarHtml(p)}<div class="name">${escapeHtml(fullName(p))}</div>
       ${span ? `<div class="dates">${escapeHtml(span)}</div>` : ""}
       ${p.living === "no" && !p.deathDate ? `<div class="deceased">✝ vefat etti</div>` : ""}
     </div>`;
   }
 
-  /* ---------- Ağaç oluşturma ---------- */
-  function renderTree() {
-    const canvas = document.getElementById("treeCanvas");
-    const empty = document.getElementById("treeEmpty");
-    const viewport = document.getElementById("treeViewport");
-    if (!state.people.length) {
-      canvas.innerHTML = ""; empty.classList.remove("hidden"); viewport.classList.add("hidden");
-      return;
-    }
-    empty.classList.add("hidden"); viewport.classList.remove("hidden");
-
-    let root = byId(state.rootId);
-    if (!root) { root = state.people[0]; state.rootId = root.id; }
-
-    const seen = new Set();
-    canvas.innerHTML = buildNode(root.id, seen);
-    applyZoom();
+  /* ---------- Veri yükleme ---------- */
+  async function reloadPeople() {
+    try { people = await Data.listPeople(); }
+    catch (e) { console.error(e); toast("Veri yüklenemedi: " + e.message); people = []; }
+    if (!byId(rootId)) rootId = people[0] ? people[0].id : null;
   }
 
-  // Bir kişiyi ve altındaki çocukları (eşiyle birlikte) çizer.
+  /* ---------- Ağaç ---------- */
+  function renderTree() {
+    const canvas = $("treeCanvas"), empty = $("treeEmpty"), viewport = $("treeViewport");
+    if (!people.length) { canvas.innerHTML = ""; empty.classList.remove("hidden"); viewport.classList.add("hidden"); return; }
+    empty.classList.add("hidden"); viewport.classList.remove("hidden");
+    let root = byId(rootId) || people[0];
+    rootId = root.id;
+    canvas.innerHTML = buildNode(root.id, new Set());
+    applyZoom();
+  }
   function buildNode(id, seen) {
     const p = byId(id);
     if (!p || seen.has(id)) return "";
     seen.add(id);
-
-    // Eş(ler)den ağaçta zaten çizilmemiş olan ilkini partner olarak göster
     let coupleHtml = personCard(p);
     const spouses = (p.spouses || []).map(byId).filter(Boolean);
     const partner = spouses.find((s) => !seen.has(s.id));
-    if (partner) {
-      seen.add(partner.id);
-      coupleHtml = `<div class="couple">${personCard(p)}<div class="couple-link"></div>${personCard(partner)}</div>`;
-    }
-
-    // Çocuklar: bu kişinin veya partnerin çocukları
+    if (partner) { seen.add(partner.id); coupleHtml = `<div class="couple">${personCard(p)}<div class="couple-link"></div>${personCard(partner)}</div>`; }
     const kidIds = new Set();
     childrenOf(p.id).forEach((c) => kidIds.add(c.id));
     if (partner) childrenOf(partner.id).forEach((c) => kidIds.add(c.id));
-
-    let childrenHtml = "";
     const kids = [...kidIds].map(byId).filter((c) => c && !seen.has(c.id));
-    if (kids.length) {
-      childrenHtml = `<div class="tree-children">${kids
-        .map((c) => `<div class="tree-subtree">${buildNode(c.id, seen)}</div>`)
-        .join("")}</div>`;
-    }
-
+    let childrenHtml = "";
+    if (kids.length) childrenHtml = `<div class="tree-children">${kids.map((c) => `<div class="tree-subtree">${buildNode(c.id, seen)}</div>`).join("")}</div>`;
     return `<div class="tree-node">${coupleHtml}${childrenHtml}</div>`;
   }
+  function applyZoom() { $("treeCanvas").style.transform = `scale(${zoom})`; $("zoomLabel").textContent = Math.round(zoom * 100) + "%"; }
+  function setZoom(d) { zoom = Math.min(2, Math.max(0.3, +(zoom + d).toFixed(2))); applyZoom(); }
 
-  /* ---------- Zoom ---------- */
-  function applyZoom() {
-    document.getElementById("treeCanvas").style.transform = `scale(${state.zoom})`;
-    document.getElementById("zoomLabel").textContent = Math.round(state.zoom * 100) + "%";
-  }
-  function zoom(delta) {
-    state.zoom = Math.min(2, Math.max(0.3, +(state.zoom + delta).toFixed(2)));
-    save(); applyZoom();
-  }
-
-  /* ---------- Liste görünümü ---------- */
+  /* ---------- Liste ---------- */
   function renderList(filter = "") {
-    const grid = document.getElementById("personGrid");
-    const f = filter.trim().toLowerCase();
-    const list = state.people
-      .filter((p) => fullName(p).toLowerCase().includes(f))
+    const grid = $("personGrid"), f = filter.trim().toLowerCase();
+    const list = people.filter((p) => fullName(p).toLowerCase().includes(f))
       .sort((a, b) => fullName(a).localeCompare(fullName(b), "tr"));
-    if (!list.length) {
-      grid.innerHTML = `<div class="empty"><p>Kişi bulunamadı.</p></div>`;
-      return;
-    }
-    grid.innerHTML = list.map((p) => `<div class="grid-card">${personCard(p)}</div>`).join("");
+    grid.innerHTML = list.length
+      ? list.map((p) => `<div class="grid-card">${personCard(p)}</div>`).join("")
+      : `<div class="empty"><p>Kişi bulunamadı.</p></div>`;
   }
 
   /* ---------- İstatistik ---------- */
   function renderStats() {
-    const el = document.getElementById("statsContent");
-    const ppl = state.people;
-    const males = ppl.filter((p) => p.gender === "male").length;
-    const females = ppl.filter((p) => p.gender === "female").length;
-    const living = ppl.filter((p) => p.living !== "no").length;
-    const withPhoto = ppl.filter((p) => p.photo).length;
-    const gens = generations();
-    const oldest = ppl.filter((p) => p.birthDate).sort((a, b) => a.birthDate.localeCompare(b.birthDate))[0];
+    const el = $("statsContent"), ppl = people;
     const boxes = [
       ["Toplam kişi", ppl.length],
-      ["Erkek", males],
-      ["Kadın", females],
-      ["Yaşayan", living],
-      ["Nesil sayısı", gens],
-      ["Fotoğraflı", withPhoto],
+      ["Erkek", ppl.filter((p) => p.gender === "male").length],
+      ["Kadın", ppl.filter((p) => p.gender === "female").length],
+      ["Yaşayan", ppl.filter((p) => p.living !== "no").length],
+      ["Nesil sayısı", generations()],
+      ["Fotoğraflı", ppl.filter((p) => p.photo).length],
     ];
     let html = boxes.map(([l, n]) => `<div class="stat-box"><div class="num">${n}</div><div class="label">${l}</div></div>`).join("");
+    const oldest = ppl.filter((p) => p.birthDate).sort((a, b) => a.birthDate.localeCompare(b.birthDate))[0];
     if (oldest) html += `<div class="stat-box"><div class="num">${year(oldest.birthDate)}</div><div class="label">En eski doğum: ${escapeHtml(fullName(oldest))}</div></div>`;
     el.innerHTML = html || `<div class="empty"><p>Veri yok.</p></div>`;
   }
   function generations() {
-    if (!state.people.length) return 0;
+    if (!people.length) return 0;
     let max = 0;
-    const depth = (id, seen) => {
-      if (seen.has(id)) return 0;
-      seen.add(id);
-      const kids = childrenOf(id);
-      let d = 1;
-      kids.forEach((k) => { d = Math.max(d, 1 + depth(k.id, seen)); });
-      return d;
-    };
-    state.people.filter((p) => !(p.parents || []).length).forEach((r) => {
-      max = Math.max(max, depth(r.id, new Set()));
-    });
+    const depth = (id, seen) => { if (seen.has(id)) return 0; seen.add(id); let d = 1; childrenOf(id).forEach((k) => { d = Math.max(d, 1 + depth(k.id, seen)); }); return d; };
+    people.filter((p) => !(p.parents || []).length).forEach((r) => { max = Math.max(max, depth(r.id, new Set())); });
     return max || 1;
   }
 
   /* ---------- Kök seçici ---------- */
   function refreshRootSelect() {
-    const sel = document.getElementById("rootSelect");
-    sel.innerHTML = state.people
-      .slice().sort((a, b) => fullName(a).localeCompare(fullName(b), "tr"))
-      .map((p) => `<option value="${p.id}" ${p.id === state.rootId ? "selected" : ""}>${escapeHtml(fullName(p))}</option>`)
-      .join("");
+    $("rootSelect").innerHTML = people.slice().sort((a, b) => fullName(a).localeCompare(fullName(b), "tr"))
+      .map((p) => `<option value="${p.id}" ${p.id === rootId ? "selected" : ""}>${escapeHtml(fullName(p))}</option>`).join("");
   }
 
   /* ---------- Kişi formu ---------- */
   function fillRelationSelects(excludeId) {
-    const parents = document.getElementById("parentsSelect");
-    const spouses = document.getElementById("spousesSelect");
-    const opts = state.people
-      .filter((p) => p.id !== excludeId)
+    const opts = people.filter((p) => p.id !== excludeId)
       .sort((a, b) => fullName(a).localeCompare(fullName(b), "tr"))
-      .map((p) => `<option value="${p.id}">${escapeHtml(fullName(p))}</option>`)
-      .join("");
-    parents.innerHTML = opts;
-    spouses.innerHTML = opts;
+      .map((p) => `<option value="${p.id}">${escapeHtml(fullName(p))}</option>`).join("");
+    $("parentsSelect").innerHTML = opts; $("spousesSelect").innerHTML = opts;
   }
-
   function openPersonForm(id) {
-    const modal = document.getElementById("personModal");
-    const form = document.getElementById("personForm");
-    form.reset();
-    fillRelationSelects(id);
-    const title = document.getElementById("personModalTitle");
-    const delBtn = document.getElementById("deletePersonBtn");
-
+    const form = $("personForm"); form.reset(); fillRelationSelects(id);
+    const delBtn = $("deletePersonBtn");
     if (id) {
       const p = byId(id);
-      title.textContent = "Kişiyi düzenle";
-      document.getElementById("personId").value = p.id;
-      document.getElementById("firstName").value = p.firstName || "";
-      document.getElementById("lastName").value = p.lastName || "";
-      document.getElementById("gender").value = p.gender || "";
-      document.getElementById("living").value = p.living || "yes";
-      document.getElementById("birthDate").value = p.birthDate || "";
-      document.getElementById("deathDate").value = p.deathDate || "";
-      document.getElementById("birthPlace").value = p.birthPlace || "";
-      document.getElementById("photo").value = p.photo || "";
-      document.getElementById("notes").value = p.notes || "";
-      setMulti("parentsSelect", p.parents || []);
-      setMulti("spousesSelect", p.spouses || []);
+      $("personModalTitle").textContent = "Kişiyi düzenle";
+      $("personId").value = p.id; $("firstName").value = p.firstName || ""; $("lastName").value = p.lastName || "";
+      $("gender").value = p.gender || ""; $("living").value = p.living || "yes";
+      $("birthDate").value = p.birthDate || ""; $("deathDate").value = p.deathDate || "";
+      $("birthPlace").value = p.birthPlace || ""; $("photo").value = p.photo || ""; $("notes").value = p.notes || "";
+      setMulti("parentsSelect", p.parents || []); setMulti("spousesSelect", p.spouses || []);
       delBtn.classList.remove("hidden");
     } else {
-      title.textContent = "Kişi ekle";
-      document.getElementById("personId").value = "";
-      delBtn.classList.add("hidden");
+      $("personModalTitle").textContent = "Kişi ekle"; $("personId").value = ""; delBtn.classList.add("hidden");
     }
-    modal.classList.remove("hidden");
-    document.getElementById("firstName").focus();
+    $("personModal").classList.remove("hidden"); $("firstName").focus();
   }
+  const setMulti = (id, vals) => [...$(id).options].forEach((o) => { o.selected = vals.includes(o.value); });
+  const getMulti = (id) => [...$(id).selectedOptions].map((o) => o.value);
 
-  function setMulti(selId, values) {
-    const sel = document.getElementById(selId);
-    [...sel.options].forEach((o) => { o.selected = values.includes(o.value); });
-  }
-  function getMulti(selId) {
-    return [...document.getElementById(selId).selectedOptions].map((o) => o.value);
-  }
-
-  function submitPerson(e) {
+  async function submitPerson(e) {
     e.preventDefault();
-    const id = document.getElementById("personId").value || uid();
-    const existing = byId(id);
     const person = {
-      id,
-      firstName: document.getElementById("firstName").value.trim(),
-      lastName: document.getElementById("lastName").value.trim(),
-      gender: document.getElementById("gender").value,
-      living: document.getElementById("living").value,
-      birthDate: document.getElementById("birthDate").value,
-      deathDate: document.getElementById("deathDate").value,
-      birthPlace: document.getElementById("birthPlace").value.trim(),
-      photo: document.getElementById("photo").value.trim(),
-      notes: document.getElementById("notes").value.trim(),
-      parents: getMulti("parentsSelect"),
-      spouses: getMulti("spousesSelect"),
+      id: $("personId").value || undefined,
+      firstName: $("firstName").value.trim(), lastName: $("lastName").value.trim(),
+      gender: $("gender").value, living: $("living").value,
+      birthDate: $("birthDate").value, deathDate: $("deathDate").value,
+      birthPlace: $("birthPlace").value.trim(), photo: $("photo").value.trim(),
+      notes: $("notes").value.trim(), parents: getMulti("parentsSelect"), spouses: getMulti("spousesSelect"),
     };
-    if (existing) Object.assign(existing, person);
-    else state.people.push(person);
-
-    // Eş ilişkisini çift yönlü tut
-    syncSpouses(person);
-    if (!state.rootId) state.rootId = person.id;
-    save();
-    closeModals();
-    renderAll();
+    try {
+      const saved = await Data.savePerson(person);
+      // Eş ilişkisini çift yönlü tut
+      await syncSpouses(saved);
+      if (!rootId) rootId = saved.id;
+      await reloadPeople(); closeModals(); renderActive();
+    } catch (err) { toast("Kaydedilemedi: " + err.message); }
   }
-
-  function syncSpouses(person) {
-    state.people.forEach((p) => {
-      if (!p.spouses) p.spouses = [];
-      const shouldLink = person.spouses.includes(p.id);
-      const linked = p.spouses.includes(person.id);
-      if (shouldLink && !linked) p.spouses.push(person.id);
-      if (!shouldLink && linked && p.id !== person.id) p.spouses = p.spouses.filter((x) => x !== person.id);
-    });
+  async function syncSpouses(person) {
+    const updates = [];
+    for (const p of people) {
+      if (p.id === person.id) continue;
+      const sp = p.spouses || [];
+      const should = (person.spouses || []).includes(p.id);
+      const linked = sp.includes(person.id);
+      if (should && !linked) updates.push(Data.savePerson({ ...p, spouses: [...sp, person.id] }));
+      else if (!should && linked) updates.push(Data.savePerson({ ...p, spouses: sp.filter((x) => x !== person.id) }));
+    }
+    await Promise.all(updates);
   }
-
-  function deletePerson(id) {
+  async function deletePerson(id) {
     if (!confirm("Bu kişiyi silmek istediğinize emin misiniz?")) return;
-    state.people = state.people.filter((p) => p.id !== id);
-    // İlişkilerden temizle
-    state.people.forEach((p) => {
-      p.parents = (p.parents || []).filter((x) => x !== id);
-      p.spouses = (p.spouses || []).filter((x) => x !== id);
-    });
-    if (state.rootId === id) state.rootId = state.people[0] ? state.people[0].id : null;
-    save();
-    closeModals();
-    renderAll();
+    try {
+      await Data.deletePerson(id);
+      // İlişkilerden temizle
+      const fixes = [];
+      for (const p of people) {
+        const np = (p.parents || []).filter((x) => x !== id);
+        const ns = (p.spouses || []).filter((x) => x !== id);
+        if (np.length !== (p.parents || []).length || ns.length !== (p.spouses || []).length)
+          fixes.push(Data.savePerson({ ...p, parents: np, spouses: ns }));
+      }
+      await Promise.all(fixes);
+      if (rootId === id) rootId = null;
+      await reloadPeople(); closeModals(); renderActive();
+    } catch (err) { toast("Silinemedi: " + err.message); }
   }
 
-  /* ---------- Detay görünümü ---------- */
+  /* ---------- Kişi detayı ---------- */
   function showDetail(id) {
-    const p = byId(id);
-    if (!p) return;
+    const p = byId(id); if (!p) return;
     const parents = (p.parents || []).map(byId).filter(Boolean);
     const spouses = (p.spouses || []).map(byId).filter(Boolean);
     const kids = childrenOf(id);
-    const siblings = state.people.filter((s) =>
-      s.id !== id && (s.parents || []).some((pa) => (p.parents || []).includes(pa)));
-
+    const siblings = people.filter((s) => s.id !== id && (s.parents || []).some((pa) => (p.parents || []).includes(pa)));
     const chips = (arr) => arr.length
       ? `<div class="relation-chips">${arr.map((r) => `<span class="chip" onclick="App.showDetail('${r.id}')">${escapeHtml(fullName(r))}</span>`).join("")}</div>`
       : `<div class="detail-note" style="color:var(--neutral)">—</div>`;
-
-    const meta = [];
-    if (lifeSpan(p)) meta.push(lifeSpan(p));
-    if (p.birthPlace) meta.push("📍 " + escapeHtml(p.birthPlace));
-
-    document.getElementById("detailCard").innerHTML = `
-      <div class="detail-head">
-        ${avatarHtml(p)}
-        <div>
-          <h2>${escapeHtml(fullName(p))}</h2>
-          <div class="sub">${meta.join(" · ")}</div>
-        </div>
-        <button class="modal-close" data-close style="margin-left:auto">×</button>
-      </div>
+    const meta = []; if (lifeSpan(p)) meta.push(lifeSpan(p)); if (p.birthPlace) meta.push("📍 " + escapeHtml(p.birthPlace));
+    $("detailCard").innerHTML = `
+      <div class="detail-head">${avatarHtml(p)}
+        <div><h2>${escapeHtml(fullName(p))}</h2><div class="sub">${meta.join(" · ")}</div></div>
+        <button class="modal-close" data-close style="margin-left:auto">×</button></div>
       <div class="detail-body">
         <div class="detail-section"><h3>Ebeveynler</h3>${chips(parents)}</div>
         <div class="detail-section"><h3>Eş(ler)</h3>${chips(spouses)}</div>
@@ -334,155 +221,269 @@ const App = (() => {
         <button class="btn btn-ghost" onclick="App.setRoot('${p.id}')">Ağacın kökü yap</button>
         <button class="btn btn-ghost" onclick="App.addChildTo('${p.id}')">Çocuk ekle</button>
       </div>`;
-    document.getElementById("detailModal").classList.remove("hidden");
+    $("detailModal").classList.remove("hidden");
+  }
+  function addChildTo(parentId) { closeModals(); openPersonForm(); setMulti("parentsSelect", [parentId]); }
+  function setRoot(id) { rootId = id; closeModals(); switchView("tree"); }
+
+  /* =====================  ALBÜMLER  ===================== */
+  async function renderAlbums() {
+    $("albumDetail").classList.add("hidden");
+    const grid = $("albumsGrid"); grid.classList.remove("hidden");
+    grid.innerHTML = `<div class="muted" style="padding:20px">Yükleniyor…</div>`;
+    let albums = [];
+    try { albums = await Data.listAlbums(); } catch (e) { grid.innerHTML = `<div class="empty"><p>Albümler yüklenemedi: ${escapeHtml(e.message)}</p></div>`; return; }
+    if (!albums.length) { grid.innerHTML = `<div class="empty"><p>📷 Henüz albüm yok. İlk albümünüzü oluşturun.</p></div>`; return; }
+    // Her albüm için kapak ve sayı
+    const cards = await Promise.all(albums.map(async (a) => {
+      let photos = []; try { photos = await Data.listPhotos(a.id); } catch {}
+      const cover = photos[0];
+      return `<div class="album-card" onclick="App.openAlbum('${a.id}')">
+        <div class="album-cover">${cover ? `<img src="${escapeHtml(cover.url)}" alt="" />` : "📷"}</div>
+        <div class="album-meta"><div class="album-name">${escapeHtml(a.title)}</div>
+          <div class="muted">${photos.length} fotoğraf</div></div></div>`;
+    }));
+    grid.innerHTML = cards.join("");
+  }
+  async function openAlbum(id) {
+    let albums = []; try { albums = await Data.listAlbums(); } catch {}
+    const a = albums.find((x) => x.id === id); if (!a) return;
+    currentAlbum = a;
+    $("albumsGrid").classList.add("hidden");
+    $("albumDetail").classList.remove("hidden");
+    $("albumTitle").textContent = a.title;
+    $("albumDesc").textContent = a.description || "";
+    await renderPhotos();
+  }
+  async function renderPhotos() {
+    const grid = $("photosGrid"); grid.innerHTML = `<div class="muted">Yükleniyor…</div>`;
+    let photos = [];
+    try { photos = await Data.listPhotos(currentAlbum.id); }
+    catch (e) { grid.innerHTML = `<div class="empty"><p>${escapeHtml(e.message)}</p></div>`; return; }
+    if (!photos.length) { grid.innerHTML = `<div class="empty"><p>Bu albümde henüz fotoğraf yok. “+ Fotoğraf yükle” ile ekleyin.</p></div>`; return; }
+    grid.innerHTML = photos.map((p) => `<div class="photo-item">
+      <img src="${escapeHtml(p.url)}" alt="${escapeHtml(p.caption || "")}" onclick="App.lightbox('${escapeHtml(p.url)}','${escapeHtml(p.caption || "")}')" />
+      <button class="photo-del" title="Sil" onclick="App.deletePhoto('${p.id}')">×</button>
+      ${p.caption ? `<div class="photo-cap">${escapeHtml(p.caption)}</div>` : ""}
+    </div>`).join("");
+  }
+  async function handlePhotoUpload(files) {
+    if (!currentAlbum || !files.length) return;
+    const status = $("uploadStatus");
+    let done = 0;
+    for (const file of files) {
+      status.textContent = `Yükleniyor… (${done + 1}/${files.length})`;
+      try { await Data.uploadPhoto(currentAlbum.id, file, ""); done++; }
+      catch (e) { toast("Yüklenemedi: " + e.message); }
+    }
+    status.textContent = done ? `${done} fotoğraf yüklendi.` : "";
+    setTimeout(() => (status.textContent = ""), 3000);
+    await renderPhotos();
+  }
+  async function deletePhoto(id) {
+    if (!confirm("Bu fotoğrafı sil?")) return;
+    const photos = await Data.listPhotos(currentAlbum.id);
+    const ph = photos.find((p) => p.id === id); if (!ph) return;
+    try { await Data.deletePhoto(ph); await renderPhotos(); } catch (e) { toast("Silinemedi: " + e.message); }
+  }
+  async function createAlbum(e) {
+    e.preventDefault();
+    const title = $("albumTitleInput").value.trim(); if (!title) return;
+    try {
+      await Data.createAlbum(title, $("albumDescInput").value.trim());
+      $("albumForm").reset(); closeModals(); await renderAlbums();
+    } catch (err) { toast("Albüm oluşturulamadı: " + err.message); }
+  }
+  async function deleteCurrentAlbum() {
+    if (!currentAlbum || !confirm(`“${currentAlbum.title}” albümü ve içindeki tüm fotoğraflar silinecek. Emin misiniz?`)) return;
+    try { await Data.deleteAlbum(currentAlbum.id); currentAlbum = null; await renderAlbums(); }
+    catch (e) { toast("Silinemedi: " + e.message); }
+  }
+  function lightbox(url, cap) {
+    $("lightboxImg").src = url; $("lightboxCaption").textContent = cap || "";
+    $("lightbox").classList.remove("hidden");
   }
 
-  function addChildTo(parentId) {
-    closeModals();
-    openPersonForm();
-    setMulti("parentsSelect", [parentId]);
+  /* =====================  ÜYE YÖNETİMİ (yönetici)  ===================== */
+  async function renderAdmin() {
+    const el = $("adminContent");
+    if (!Auth.cloud) { el.innerHTML = `<div class="empty"><p>Üye yönetimi yalnızca bulut modunda kullanılır (Supabase yapılandırın).</p></div>`; return; }
+    el.innerHTML = `<div class="muted">Yükleniyor…</div>`;
+    let profiles = [];
+    try { profiles = await Auth.listProfiles(); } catch (e) { el.innerHTML = `<div class="empty"><p>${escapeHtml(e.message)}</p></div>`; return; }
+    const pending = profiles.filter((p) => p.status === "pending");
+    const others = profiles.filter((p) => p.status !== "pending");
+    const row = (p) => `<tr>
+      <td>${escapeHtml(p.full_name || "—")}</td>
+      <td>${escapeHtml(p.email || "")}</td>
+      <td><span class="badge badge-${p.status}">${statusLabel(p.status)}</span></td>
+      <td>${p.role === "admin" ? "👑 Yönetici" : "Üye"}</td>
+      <td class="admin-actions">
+        ${p.status !== "approved" ? `<button class="btn btn-primary btn-sm" onclick="App.approve('${p.id}')">Onayla</button>` : ""}
+        ${p.status !== "rejected" ? `<button class="btn btn-danger btn-sm" onclick="App.reject('${p.id}')">Reddet</button>` : ""}
+      </td></tr>`;
+    el.innerHTML = `
+      ${pending.length ? `<h3 class="admin-sub">Onay bekleyenler (${pending.length})</h3>
+        <table class="admin-table"><tbody>${pending.map(row).join("")}</tbody></table>` : `<p class="muted">Bekleyen üye yok.</p>`}
+      <h3 class="admin-sub">Tüm üyeler (${others.length})</h3>
+      <table class="admin-table">
+        <thead><tr><th>Ad</th><th>E-posta</th><th>Durum</th><th>Rol</th><th></th></tr></thead>
+        <tbody>${others.map(row).join("")}</tbody></table>`;
   }
+  const statusLabel = (s) => ({ pending: "Bekliyor", approved: "Onaylı", rejected: "Reddedildi" }[s] || s);
+  async function approve(id) { await Auth.setStatus(id, "approved"); toast("Üye onaylandı."); renderAdmin(); }
+  async function reject(id) { if (confirm("Üyeyi reddet?")) { await Auth.setStatus(id, "rejected"); renderAdmin(); } }
 
-  function setRoot(id) {
-    state.rootId = id; save();
-    closeModals();
-    switchView("tree");
-    renderAll();
-  }
-
-  /* ---------- Görünüm değiştirme ---------- */
+  /* =====================  GÖRÜNÜM / GENEL  ===================== */
   function switchView(name) {
     document.querySelectorAll(".nav-btn").forEach((b) => b.classList.toggle("active", b.dataset.view === name));
     document.querySelectorAll(".view").forEach((v) => v.classList.toggle("active", v.id === "view-" + name));
-    if (name === "list") renderList(document.getElementById("searchInput").value);
-    if (name === "stats") renderStats();
-    if (name === "tree") renderTree();
+    renderActive(name);
   }
-
-  function closeModals() {
-    document.querySelectorAll(".modal").forEach((m) => m.classList.add("hidden"));
-  }
-
-  function renderAll() {
+  function renderActive(name) {
+    const active = name || (document.querySelector(".view.active") || {}).id?.replace("view-", "") || "tree";
     refreshRootSelect();
-    const active = document.querySelector(".view.active");
-    if (active && active.id === "view-list") renderList(document.getElementById("searchInput").value);
-    else if (active && active.id === "view-stats") renderStats();
+    if (active === "list") renderList($("searchInput").value);
+    else if (active === "stats") renderStats();
+    else if (active === "albums") renderAlbums();
+    else if (active === "admin") renderAdmin();
     else renderTree();
   }
+  function closeModals() { document.querySelectorAll(".modal, .lightbox").forEach((m) => m.classList.add("hidden")); }
+  function toast(msg) { console.log(msg); alert(msg); }
 
-  /* ---------- İçe / Dışa aktar ---------- */
-  function exportData() {
-    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "soyagacim.json";
-    a.click();
+  /* ---------- İçe/dışa aktar (yedek) ---------- */
+  async function exportData() {
+    const payload = Data.cloud ? { people } : Data.exportLocal();
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "soyagacim.json"; a.click();
     URL.revokeObjectURL(a.href);
   }
-  function importData(file) {
+  async function importData(file) {
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       try {
         const data = JSON.parse(reader.result);
-        if (!Array.isArray(data.people)) throw new Error("Geçersiz dosya");
-        state = Object.assign({ people: [], rootId: null, zoom: 1 }, data);
-        save(); renderAll();
-        alert("İçe aktarma tamamlandı: " + state.people.length + " kişi.");
-      } catch (e) { alert("Dosya okunamadı: " + e.message); }
+        const list = Array.isArray(data) ? data : data.people;
+        if (!Array.isArray(list)) throw new Error("Geçersiz dosya");
+        if (Data.cloud) { for (const p of list) await Data.savePerson({ ...p, id: undefined }); }
+        else Data.importLocal(data.people ? data : { people: list });
+        await reloadPeople(); renderActive(); toast("İçe aktarıldı: " + list.length + " kişi.");
+      } catch (e) { toast("Dosya okunamadı: " + e.message); }
     };
     reader.readAsText(file);
   }
-  function clearAll() {
-    if (!confirm("TÜM kişiler silinecek. Emin misiniz?")) return;
-    state = { people: [], rootId: null, zoom: 1 };
-    save(); renderAll();
+  async function clearAll() {
+    if (!confirm("TÜM kişileriniz silinecek. Emin misiniz?")) return;
+    if (Data.cloud) { for (const p of people) await Data.deletePerson(p.id); }
+    else Data.importLocal({ people: [], albums: [], photos: [] });
+    rootId = null; await reloadPeople(); renderActive();
   }
 
   /* ---------- Örnek aile ---------- */
-  function loadSample() {
-    const p = (firstName, lastName, gender, birthDate, extra = {}) =>
-      Object.assign({ id: uid(), firstName, lastName, gender, birthDate, living: "yes", parents: [], spouses: [] }, extra);
-
-    const dede = p("Ahmet", "Yılmaz", "male", "1940-03-12", { living: "no", deathDate: "2015-08-01", birthPlace: "Sivas" });
-    const nine = p("Fatma", "Yılmaz", "female", "1945-06-20", { living: "no", deathDate: "2018-11-10", birthPlace: "Sivas" });
-    dede.spouses = [nine.id]; nine.spouses = [dede.id];
-
-    const baba = p("Mehmet", "Yılmaz", "male", "1968-01-15", { parents: [dede.id, nine.id], birthPlace: "Ankara" });
-    const anne = p("Ayşe", "Yılmaz", "female", "1971-09-05", { birthPlace: "İstanbul" });
-    baba.spouses = [anne.id]; anne.spouses = [baba.id];
-
-    const hala = p("Zeynep", "Demir", "female", "1972-04-25", { parents: [dede.id, nine.id] });
-
-    const cocuk1 = p("Elif", "Yılmaz", "female", "1998-07-30", { parents: [baba.id, anne.id] });
-    const cocuk2 = p("Can", "Yılmaz", "male", "2001-12-11", { parents: [baba.id, anne.id] });
-
-    state = {
-      people: [dede, nine, baba, anne, hala, cocuk1, cocuk2],
-      rootId: dede.id,
-      zoom: 1,
-    };
-    save(); renderAll();
-    switchView("tree");
+  async function loadSample() {
+    const mk = (firstName, lastName, gender, birthDate, extra = {}) =>
+      ({ firstName, lastName, gender, birthDate, living: "yes", parents: [], spouses: [], ...extra });
+    // Sırayla kaydet ki id'ler oluşsun, sonra ilişkileri bağla
+    const dede = await Data.savePerson(mk("Ahmet", "Yılmaz", "male", "1940-03-12", { living: "no", deathDate: "2015-08-01", birthPlace: "Sivas" }));
+    const nine = await Data.savePerson(mk("Fatma", "Yılmaz", "female", "1945-06-20", { living: "no", deathDate: "2018-11-10", birthPlace: "Sivas", spouses: [dede.id] }));
+    await Data.savePerson({ ...dede, spouses: [nine.id] });
+    const baba = await Data.savePerson(mk("Mehmet", "Yılmaz", "male", "1968-01-15", { parents: [dede.id, nine.id], birthPlace: "Ankara" }));
+    const anne = await Data.savePerson(mk("Ayşe", "Yılmaz", "female", "1971-09-05", { birthPlace: "İstanbul", spouses: [baba.id] }));
+    await Data.savePerson({ ...baba, spouses: [anne.id] });
+    await Data.savePerson(mk("Zeynep", "Demir", "female", "1972-04-25", { parents: [dede.id, nine.id] }));
+    await Data.savePerson(mk("Elif", "Yılmaz", "female", "1998-07-30", { parents: [baba.id, anne.id] }));
+    await Data.savePerson(mk("Can", "Yılmaz", "male", "2001-12-11", { parents: [baba.id, anne.id] }));
+    rootId = dede.id; await reloadPeople(); switchView("tree");
   }
 
-  /* ---------- Olaylar ---------- */
+  /* =====================  KİMLİK AKIŞI  ===================== */
+  function showScreen(which) {
+    $("authScreen").classList.toggle("hidden", which !== "auth");
+    $("pendingScreen").classList.toggle("hidden", which !== "pending");
+    $("appShell").classList.toggle("hidden", which !== "app");
+  }
+  async function onAuthChange(profile) {
+    if (Auth.cloud && !profile) { showScreen("auth"); return; }
+    if (Auth.cloud && profile && profile.status !== "approved") { showScreen("pending"); return; }
+    // Onaylı (veya demo) → uygulamayı göster
+    showScreen("app");
+    document.querySelectorAll(".admin-only").forEach((e) => e.classList.toggle("hidden", !Auth.isAdmin()));
+    document.querySelectorAll(".cloud-only").forEach((e) => e.classList.toggle("hidden", !Auth.cloud));
+    $("modeBadge").textContent = Auth.cloud ? "" : "demo";
+    $("menuUser").textContent = profile ? (profile.email || "") : "";
+    $("footerNote").textContent = Auth.cloud
+      ? "Soyağacım — verileriniz hesabınıza özeldir."
+      : "Demo modu — veriler yalnız bu tarayıcıda saklanır. Bulut için Supabase yapılandırın.";
+    await reloadPeople(); renderActive("tree");
+  }
+
+  function bindAuth() {
+    document.querySelectorAll(".auth-tab").forEach((t) => t.addEventListener("click", () => {
+      document.querySelectorAll(".auth-tab").forEach((x) => x.classList.toggle("active", x === t));
+      $("loginForm").classList.toggle("hidden", t.dataset.tab !== "login");
+      $("registerForm").classList.toggle("hidden", t.dataset.tab !== "register");
+      $("authMsg").textContent = "";
+    }));
+    $("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault(); $("authMsg").textContent = "Giriş yapılıyor…";
+      try { await Auth.signIn($("loginEmail").value.trim(), $("loginPass").value); $("authMsg").textContent = ""; }
+      catch (err) { $("authMsg").textContent = "Giriş başarısız: " + err.message; }
+    });
+    $("registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault(); $("authMsg").textContent = "Kayıt yapılıyor…";
+      try {
+        await Auth.signUp($("regEmail").value.trim(), $("regPass").value, $("regName").value.trim());
+        $("authMsg").innerHTML = "<b>Kaydınız alındı.</b> Yönetici onayından sonra giriş yapabilirsiniz.";
+        $("registerForm").reset();
+      } catch (err) { $("authMsg").textContent = "Kayıt başarısız: " + err.message; }
+    });
+    $("pendingLogout").addEventListener("click", () => Auth.signOut());
+  }
+
+  /* ---------- Olay bağlama ---------- */
   function bind() {
-    document.querySelectorAll(".nav-btn").forEach((b) =>
-      b.addEventListener("click", () => switchView(b.dataset.view)));
-
-    document.getElementById("addPersonBtn").addEventListener("click", () => openPersonForm());
-    document.getElementById("personForm").addEventListener("submit", submitPerson);
-    document.getElementById("deletePersonBtn").addEventListener("click", () => {
-      const id = document.getElementById("personId").value;
-      if (id) deletePerson(id);
-    });
-
-    document.addEventListener("click", (e) => {
-      if (e.target.matches("[data-close], .modal-backdrop")) closeModals();
-    });
+    document.querySelectorAll(".nav-btn").forEach((b) => b.addEventListener("click", () => switchView(b.dataset.view)));
+    $("addPersonBtn").addEventListener("click", () => openPersonForm());
+    $("personForm").addEventListener("submit", submitPerson);
+    $("deletePersonBtn").addEventListener("click", () => { const id = $("personId").value; if (id) deletePerson(id); });
+    document.addEventListener("click", (e) => { if (e.target.matches("[data-close], .modal-backdrop")) closeModals(); });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModals(); });
+    $("searchInput").addEventListener("input", (e) => { switchView("list"); renderList(e.target.value); });
+    $("rootSelect").addEventListener("change", (e) => { rootId = e.target.value; renderTree(); });
+    $("zoomIn").addEventListener("click", () => setZoom(0.1));
+    $("zoomOut").addEventListener("click", () => setZoom(-0.1));
+    $("zoomReset").addEventListener("click", () => { zoom = 1; applyZoom(); });
 
-    document.getElementById("searchInput").addEventListener("input", (e) => {
-      switchView("list");
-      renderList(e.target.value);
-    });
-
-    document.getElementById("rootSelect").addEventListener("change", (e) => {
-      state.rootId = e.target.value; save(); renderTree();
-    });
-
-    document.getElementById("zoomIn").addEventListener("click", () => zoom(0.1));
-    document.getElementById("zoomOut").addEventListener("click", () => zoom(-0.1));
-    document.getElementById("zoomReset").addEventListener("click", () => { state.zoom = 1; save(); applyZoom(); });
-
-    // Menü
-    const menuBtn = document.getElementById("menuBtn");
-    const dropdown = document.getElementById("menuDropdown");
-    menuBtn.addEventListener("click", (e) => { e.stopPropagation(); dropdown.classList.toggle("hidden"); });
+    const dropdown = $("menuDropdown");
+    $("menuBtn").addEventListener("click", (e) => { e.stopPropagation(); dropdown.classList.toggle("hidden"); });
     document.addEventListener("click", () => dropdown.classList.add("hidden"));
     dropdown.addEventListener("click", (e) => e.stopPropagation());
+    $("exportBtn").addEventListener("click", exportData);
+    $("sampleBtn").addEventListener("click", loadSample);
+    $("clearBtn").addEventListener("click", clearAll);
+    $("logoutBtn").addEventListener("click", () => Auth.signOut());
+    $("importBtn").addEventListener("click", () => $("importFile").click());
+    $("importFile").addEventListener("change", (e) => { if (e.target.files[0]) importData(e.target.files[0]); e.target.value = ""; });
 
-    document.getElementById("exportBtn").addEventListener("click", exportData);
-    document.getElementById("sampleBtn").addEventListener("click", loadSample);
-    document.getElementById("clearBtn").addEventListener("click", clearAll);
-    document.getElementById("importBtn").addEventListener("click", () => document.getElementById("importFile").click());
-    document.getElementById("importFile").addEventListener("change", (e) => {
-      if (e.target.files[0]) importData(e.target.files[0]);
-      e.target.value = "";
-    });
+    // Albümler
+    $("addAlbumBtn").addEventListener("click", () => $("albumModal").classList.remove("hidden"));
+    $("albumForm").addEventListener("submit", createAlbum);
+    $("backToAlbums").addEventListener("click", renderAlbums);
+    $("deleteAlbumBtn").addEventListener("click", deleteCurrentAlbum);
+    $("photoInput").addEventListener("change", (e) => { handlePhotoUpload([...e.target.files]); e.target.value = ""; });
   }
 
   /* ---------- Başlat ---------- */
-  function init() {
-    load();
-    bind();
-    renderAll();
+  async function init() {
+    bind(); bindAuth();
+    Auth.onChange(onAuthChange);
+    await Auth.init();
   }
 
   return {
-    init, openPersonForm, showDetail, setRoot, addChildTo, loadSample,
-    deletePerson,
+    init, openPersonForm, showDetail, setRoot, addChildTo, loadSample, deletePerson,
+    openAlbum, deletePhoto, lightbox, approve, reject,
   };
 })();
 
