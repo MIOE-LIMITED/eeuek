@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Soyağacım — Aile Ağacı</title>
+  <meta name="description" content="Ücretsiz barındırılabilen, tarayıcıda çalışan aile ağacı / soyağacı uygulaması." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌳</text></svg>" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-logo">🌳</span>
+      <span class="brand-name">Soyağacım</span>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn active" data-view="tree">Ağaç</button>
+      <button class="nav-btn" data-view="list">Kişiler</button>
+      <button class="nav-btn" data-view="stats">İstatistik</button>
+    </nav>
+    <div class="topbar-actions">
+      <input type="search" id="searchInput" class="search" placeholder="Kişi ara..." />
+      <button id="addPersonBtn" class="btn btn-primary">+ Kişi ekle</button>
+      <div class="menu">
+        <button id="menuBtn" class="btn btn-ghost" title="Menü">⋯</button>
+        <div id="menuDropdown" class="menu-dropdown hidden">
+          <button id="exportBtn">Dışa aktar (JSON)</button>
+          <button id="importBtn">İçe aktar (JSON)</button>
+          <button id="sampleBtn">Örnek aile yükle</button>
+          <button id="clearBtn" class="danger">Tümünü sil</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Ağaç görünümü -->
+    <section id="view-tree" class="view active">
+      <div class="tree-toolbar">
+        <label class="root-select">
+          Kök kişi:
+          <select id="rootSelect"></select>
+        </label>
+        <div class="zoom-controls">
+          <button id="zoomOut" class="btn btn-ghost">−</button>
+          <span id="zoomLabel">100%</span>
+          <button id="zoomIn" class="btn btn-ghost">+</button>
+          <button id="zoomReset" class="btn btn-ghost">Sıfırla</button>
+        </div>
+      </div>
+      <div id="treeViewport" class="tree-viewport">
+        <div id="treeCanvas" class="tree-canvas"></div>
+      </div>
+      <div id="treeEmpty" class="empty hidden">
+        <p>🌱 Henüz kimse yok. Soyağacınızı oluşturmak için bir kişi ekleyin.</p>
+        <button class="btn btn-primary" onclick="App.openPersonForm()">İlk kişiyi ekle</button>
+        <button class="btn btn-ghost" onclick="App.loadSample()">Örnek aile yükle</button>
+      </div>
+    </section>
+
+    <!-- Liste görünümü -->
+    <section id="view-list" class="view">
+      <div id="personGrid" class="person-grid"></div>
+    </section>
+
+    <!-- İstatistik görünümü -->
+    <section id="view-stats" class="view">
+      <div id="statsContent" class="stats-content"></div>
+    </section>
+  </main>
+
+  <!-- Kişi formu modalı -->
+  <div id="personModal" class="modal hidden">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="personModalTitle">Kişi ekle</h2>
+        <button class="modal-close" data-close>×</button>
+      </div>
+      <form id="personForm" class="modal-body">
+        <input type="hidden" id="personId" />
+        <div class="form-row">
+          <label>Ad
+            <input type="text" id="firstName" required />
+          </label>
+          <label>Soyad
+            <input type="text" id="lastName" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Cinsiyet
+            <select id="gender">
+              <option value="">Belirtilmemiş</option>
+              <option value="male">Erkek</option>
+              <option value="female">Kadın</option>
+            </select>
+          </label>
+          <label>Yaşıyor mu?
+            <select id="living">
+              <option value="yes">Evet</option>
+              <option value="no">Hayır</option>
+            </select>
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Doğum tarihi
+            <input type="date" id="birthDate" />
+          </label>
+          <label>Vefat tarihi
+            <input type="date" id="deathDate" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Doğum yeri
+            <input type="text" id="birthPlace" placeholder="Şehir, Ülke" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Fotoğraf (URL)
+            <input type="url" id="photo" placeholder="https://..." />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Ebeveynler
+            <select id="parentsSelect" multiple size="4"></select>
+            <small>Birden fazla seçmek için Ctrl/Cmd ile tıklayın</small>
+          </label>
+          <label>Eş(ler)
+            <select id="spousesSelect" multiple size="4"></select>
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Notlar
+            <textarea id="notes" rows="3" placeholder="Biyografi, anılar, hikayeler..."></textarea>
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="deletePersonBtn" class="btn btn-danger hidden">Sil</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn btn-ghost" data-close>İptal</button>
+          <button type="submit" class="btn btn-primary">Kaydet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Kişi detay modalı -->
+  <div id="detailModal" class="modal hidden">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card" id="detailCard"></div>
+  </div>
+
+  <input type="file" id="importFile" accept="application/json" class="hidden" />
+
+  <footer class="footer">
+    <span>Soyağacım — verileriniz yalnızca bu tarayıcıda saklanır.</span>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
