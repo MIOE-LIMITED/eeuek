@@ -22,7 +22,11 @@ build/
 .vscode/
 .idea/
 
-# yüklenecek dokümanlar (gizli kalsın; klasör yapısı korunur)
+# yüklenecek dokümanlar — PDF/DOCX depoya eklenebilir (indeksleme için)
 dokumanlar/*
 !dokumanlar/.gitkeep
 !dokumanlar/README.md
+!dokumanlar/*.pdf
+!dokumanlar/*.PDF
+!dokumanlar/*.docx
+!dokumanlar/*.DOCX
