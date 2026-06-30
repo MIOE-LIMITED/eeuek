@@ -22,7 +22,7 @@ export default function HomePage() {
         <h2 className="section-title">Popüler sorular</h2>
         <div className="q-grid">
           {POPULAR.map((item) => (
-            <Link key={item.slug} href={`/soru/${item.slug}`} className="q-card">
+            <Link key={item.slug} href={`/soru/${item.slug}`} className="q-card" prefetch={false}>
               <span className="q-icon">❄️ Soru</span>
               <span className="q-text">{item.question}</span>
             </Link>
