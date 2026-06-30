@@ -40,9 +40,30 @@ export async function POST(req) {
     return NextResponse.json({ slug, ...record });
   } catch (err) {
     console.error('ask error:', err);
-    return NextResponse.json(
-      { error: err?.message || 'Cevap üretilemedi. Lütfen tekrar deneyin.' },
-      { status: 500 }
-    );
+    const { status, message } = friendlyError(err);
+    return NextResponse.json({ error: message }, { status });
   }
+}
+
+// Gemini/SDK hatalarını kullanıcıya gösterilebilecek sade Türkçe mesajlara çevirir.
+function friendlyError(err) {
+  const raw = (err?.message || String(err) || '').toString();
+  const code = err?.status || err?.code;
+  const isRateLimit =
+    code === 429 || /RESOURCE_EXHAUSTED|quota|rate.?limit|429/i.test(raw);
+  if (isRateLimit) {
+    return {
+      status: 429,
+      message:
+        'Şu an çok fazla soru geliyor (ücretsiz kota dakikada 5 istek). ' +
+        'Lütfen yaklaşık 1 dakika sonra tekrar deneyin.',
+    };
+  }
+  if (/API key|API_KEY|PERMISSION_DENIED|unauthor/i.test(raw)) {
+    return {
+      status: 500,
+      message: 'Sunucu yapılandırma hatası. Lütfen daha sonra tekrar deneyin.',
+    };
+  }
+  return { status: 500, message: 'Cevap üretilemedi. Lütfen tekrar deneyin.' };
 }
