@@ -22,11 +22,16 @@ build/
 .vscode/
 .idea/
 
-# yüklenecek dokümanlar — PDF/DOCX depoya eklenebilir (indeksleme için)
+# yüklenecek dokümanlar — PDF/DOCX (alt klasörler dahil) depoya eklenebilir
 dokumanlar/*
 !dokumanlar/.gitkeep
 !dokumanlar/README.md
+!dokumanlar/**/
 !dokumanlar/*.pdf
 !dokumanlar/*.PDF
 !dokumanlar/*.docx
 !dokumanlar/*.DOCX
+!dokumanlar/**/*.pdf
+!dokumanlar/**/*.PDF
+!dokumanlar/**/*.docx
+!dokumanlar/**/*.DOCX

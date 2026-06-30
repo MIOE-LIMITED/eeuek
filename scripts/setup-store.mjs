@@ -14,6 +14,26 @@ import { GoogleGenAI } from '@google/genai';
 import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 
+/** dokumanlar/ klasörünü alt klasörleriyle birlikte tarayıp PDF/DOCX yollarını döndürür. */
+async function walkDocs(dir, baseDir) {
+  let out = [];
+  let entries = [];
+  try {
+    entries = await readdir(dir, { withFileTypes: true });
+  } catch {
+    return out;
+  }
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      out = out.concat(await walkDocs(full, baseDir));
+    } else if (ALLOWED_EXT.has(path.extname(entry.name).toLowerCase())) {
+      out.push({ full, rel: path.relative(baseDir, full) });
+    }
+  }
+  return out;
+}
+
 const STORE_DISPLAY_NAME = 'klimasun-dokumanlar';
 const DOCS_DIR = path.resolve(process.cwd(), 'dokumanlar');
 const ALLOWED_EXT = new Set(['.pdf', '.docx']);
@@ -38,28 +58,24 @@ async function main() {
   });
   console.log(`✓ Store oluşturuldu: ${store.name}`);
 
-  let files = [];
-  try {
-    files = (await readdir(DOCS_DIR)).filter((f) =>
-      ALLOWED_EXT.has(path.extname(f).toLowerCase())
-    );
-  } catch {
-    console.warn(`! "${DOCS_DIR}" klasörü okunamadı. PDF/DOCX yüklemesi atlanıyor.`);
-  }
+  const files = await walkDocs(DOCS_DIR, DOCS_DIR);
 
   if (files.length === 0) {
-    console.warn('! dokumanlar/ içinde PDF veya DOCX dosyası bulunamadı.');
+    console.warn('! dokumanlar/ içinde (alt klasörler dahil) PDF veya DOCX bulunamadı.');
     console.warn('  Dosyaları ekleyip scripti tekrar çalıştırabilir ya da');
     console.warn('  aşağıdaki store adını şimdiden .env dosyanıza ekleyebilirsiniz.');
+  } else {
+    console.log(`→ ${files.length} doküman bulundu (alt klasörler dahil).`);
   }
 
-  for (const file of files) {
-    const fullPath = path.join(DOCS_DIR, file);
-    process.stdout.write(`→ Yükleniyor: ${file} `);
+  let okCount = 0;
+  let failCount = 0;
+  for (const { full, rel } of files) {
+    process.stdout.write(`→ Yükleniyor: ${rel} `);
     let operation = await ai.fileSearchStores.uploadToFileSearchStore({
-      file: fullPath,
+      file: full,
       fileSearchStoreName: store.name,
-      config: { displayName: file },
+      config: { displayName: rel },
     });
 
     while (!operation.done) {
@@ -68,14 +84,17 @@ async function main() {
       process.stdout.write('.');
     }
     if (operation.error) {
+      failCount++;
       console.log(` ✗ HATA: ${operation.error.message || JSON.stringify(operation.error)}`);
     } else {
+      okCount++;
       console.log(' ✓ indekslendi');
     }
   }
 
   console.log('\n========================================================');
-  console.log('BİTTİ. Aşağıdaki satırı .env dosyanıza ekleyin:\n');
+  console.log(`BİTTİ. ${okCount} doküman indekslendi${failCount ? `, ${failCount} başarısız` : ''}.`);
+  console.log('Aşağıdaki satırı .env dosyanıza ekleyin:\n');
   console.log(`GEMINI_FILE_SEARCH_STORE=${store.name}`);
   console.log('\nVercel kullanıyorsanız aynı değeri Environment Variables');
   console.log('bölümüne de ekleyin.');
