@@ -41,7 +41,9 @@ export async function POST(req) {
   } catch (err) {
     console.error('ask error:', err);
     const { status, message } = friendlyError(err);
-    return NextResponse.json({ error: message }, { status });
+    // GEÇİCİ TEŞHİS: gerçek hata metnini de ekrana ver (sorun bulununca kaldırılacak).
+    const detail = (err?.message || String(err) || '').replace(/\s+/g, ' ').slice(0, 400);
+    return NextResponse.json({ error: `${message}\n\n[TEŞHİS] ${detail}` }, { status });
   }
 }
 
