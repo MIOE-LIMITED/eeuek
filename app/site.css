@@ -1239,3 +1239,17 @@
 .ks-pager button:hover { border-color: var(--amber); }
 .ks-pager button.next { padding: 0 14px; }
 .ks-pager { flex-wrap: wrap; }
+
+/* Kategori sayfası: alt kategori şeridi */
+.ks-subcat-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.ks-subcat-lbl {
+  font: 600 11.5px var(--font);
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-right: 4px;
+}

@@ -19,12 +19,12 @@ const BRANDS = [
 ];
 
 const CATEGORIES = [
-  ['❄️', 'Pano İklimlendirme', '2052'],
-  ['⚙️', 'Yedek Parça', '4222'],
-  ['🧊', 'Chiller Soğutma', '248'],
-  ['💨', 'Evaporatif Soğutma', '246'],
-  ['🌬️', 'Klimalar', '38'],
-  ['🤖', 'Otomasyon', '42'],
+  ['❄️', 'Pano İklimlendirme', '2052', 'pano-iklimlendirme'],
+  ['⚙️', 'Yedek Parça', '4222', 'yedek-parca'],
+  ['🧊', 'Chiller Soğutma', '248', 'chiller-sogutma'],
+  ['💨', 'Evaporatif Soğutma', '246', 'evaporatif-sogutma'],
+  ['🌬️', 'Klimalar', '38', 'klimalar'],
+  ['🤖', 'Otomasyon', '42', 'otomasyon'],
 ];
 
 const SOLUTIONS = [
@@ -113,8 +113,8 @@ export default function HomePage() {
             genelinde hizmet veriyoruz.
           </p>
           <div className="ks-grid-6">
-            {CATEGORIES.map(([icon, name, count]) => (
-              <Link href="/urunler" className="ks-cat-tile" key={name}>
+            {CATEGORIES.map(([icon, name, count, slug]) => (
+              <Link href={`/kategori/${slug}`} className="ks-cat-tile" key={name}>
                 <span className="ks-cat-ico">{icon}</span>
                 <span className="ks-cat-name">{name}</span>
                 <span className="ks-cat-count">{count} ürün</span>

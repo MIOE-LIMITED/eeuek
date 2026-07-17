@@ -1,5 +1,6 @@
 import { POPULAR } from '@/lib/popular';
 import PRODUCT_SLUGS from '@/lib/catalog-slugs.json';
+import CATEGORY_SLUGS from '@/lib/category-slugs.json';
 import { recentSlugs } from '@/lib/store';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://klimasun.vercel.app';
@@ -24,6 +25,15 @@ export default async function sitemap() {
     changeFrequency,
     priority,
   }));
+
+  for (const slug of CATEGORY_SLUGS) {
+    entries.push({
+      url: `${SITE_URL}/kategori/${slug}`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    });
+  }
 
   for (const slug of PRODUCT_SLUGS) {
     entries.push({

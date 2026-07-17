@@ -1,8 +1,11 @@
 // Katalog üretimi: klimasun-2026/data/* kaynaklarından site verisini üretir.
-//   public/veri/katalog.json   — ürün listesi için ince indeks (istemci çeker)
-//   public/veri/detay/N.json   — ürün detayları, slug hash'ine göre 64 parça
-//   lib/catalog-slugs.json     — sitemap için slug listesi (build'de import edilir)
-//   public/gorseller/          — klimasun-2026/assets/products kopyası (yoksa)
+//   public/veri/katalog.json        — ürün listesi için ince indeks (istemci çeker)
+//   public/veri/detay/N.json        — ürün detayları, slug hash'ine göre 64 parça
+//   public/veri/kategoriler.json    — kategori ağacı (ad, slug, sayılar)
+//   public/veri/kategori/SLUG.json  — kategori başına ürün indeksi
+//   lib/catalog-slugs.json          — sitemap için ürün slug listesi
+//   lib/category-slugs.json         — sitemap için kategori slug listesi
+//   public/gorseller/               — klimasun-2026/assets/products kopyası (yoksa)
 // `npm run build` ve `npm run deploy` öncesinde otomatik çalışır.
 
 import fs from 'node:fs';
@@ -23,7 +26,9 @@ function shardOf(slug) {
 const readJson = (p) => JSON.parse(fs.readFileSync(p, 'utf8'));
 const products = readJson(path.join(SRC, 'data/products.json'));
 const brands = readJson(path.join(SRC, 'data/brands.json'));
-const catFlat = readJson(path.join(SRC, 'data/categories.json')).flat;
+const categories = readJson(path.join(SRC, 'data/categories.json'));
+const catFlat = categories.flat;
+const catTree = categories.tree;
 
 const catName = new Map(catFlat.map((c) => [c.slug, c.name]));
 const gorsel = (p) => (p ? '/gorseller/' + p.replace(/^assets\/products\//, '') : '');
@@ -31,7 +36,7 @@ const isSecondHand = (p) =>
   p.dom === '2-el-urunler' || p.pc.startsWith('2-el') || p.cats.some((c) => c.startsWith('2-el'));
 
 // --- 1) Liste indeksi: [slug, kod, ad, marka, 2.el(0/1), stok(0/1), küçük görsel]
-const items = products.map((p) => [
+const asItem = (p) => [
   p.s,
   p.c,
   p.n,
@@ -39,7 +44,8 @@ const items = products.map((p) => [
   isSecondHand(p) ? 1 : 0,
   p.st === 'Stokta' ? 1 : 0,
   gorsel(p.th),
-]);
+];
+const items = products.map(asItem);
 
 const katalog = {
   count: products.length,
@@ -77,6 +83,7 @@ for (const p of products) {
     desc: p.ld || p.sd || '',
     f: p.f || {},
     cat: catName.get(p.pc) || catName.get(p.cats[0]) || 'Ürünler',
+    catSlug: catName.has(p.pc) ? p.pc : catName.has(p.cats[0]) ? p.cats[0] : '',
     cond: isSecondHand(p) ? '2.El' : 'Sıfır',
     stok: p.st === 'Stokta' ? 1 : 0,
     rel,
@@ -86,13 +93,37 @@ shards.forEach((s, i) => {
   fs.writeFileSync(path.join(veriDir, 'detay', `${i}.json`), JSON.stringify(s));
 });
 
-// --- 3) Sitemap slug listesi
+// --- 3) Kategori sayfaları: ağaç + kategori başına ürün indeksi
+//     Ana kategori üyeliği: p.dom; alt kategori üyeliği: p.cats listesi.
+const katDir = path.join(veriDir, 'kategori');
+fs.mkdirSync(katDir, { recursive: true });
+
+const itemsOf = (slug, isTop) =>
+  products.filter((p) => (isTop ? p.dom === slug : p.cats.includes(slug))).map(asItem);
+
+const tree = catTree.map((top) => {
+  const topItems = itemsOf(top.slug, true);
+  fs.writeFileSync(path.join(katDir, `${top.slug}.json`), JSON.stringify({ items: topItems }));
+  const children = (top.children || []).map((ch) => {
+    const chItems = itemsOf(ch.slug, false);
+    fs.writeFileSync(path.join(katDir, `${ch.slug}.json`), JSON.stringify({ items: chItems }));
+    return { slug: ch.slug, name: ch.name, count: chItems.length };
+  });
+  return { slug: top.slug, name: top.name, count: topItems.length, children };
+});
+fs.writeFileSync(path.join(veriDir, 'kategoriler.json'), JSON.stringify(tree));
+
+// --- 4) Sitemap slug listeleri
 fs.writeFileSync(
   path.join(ROOT, 'lib/catalog-slugs.json'),
   JSON.stringify(products.map((p) => p.s)),
 );
+fs.writeFileSync(
+  path.join(ROOT, 'lib/category-slugs.json'),
+  JSON.stringify(tree.flatMap((t) => [t.slug, ...t.children.map((c) => c.slug)])),
+);
 
-// --- 4) Görseller (tek seferlik kopya; varsa dokunma)
+// --- 5) Görseller (tek seferlik kopya; varsa dokunma)
 const imgSrc = path.join(SRC, 'assets/products');
 const imgDst = path.join(ROOT, 'public/gorseller');
 if (!fs.existsSync(imgDst)) {
@@ -101,5 +132,7 @@ if (!fs.existsSync(imgDst)) {
 }
 
 console.log(
-  `Katalog üretildi: ${products.length} ürün, ${brands.length} marka, ${SHARDS} detay parçası.`,
+  `Katalog üretildi: ${products.length} ürün, ${brands.length} marka, ` +
+    `${tree.length} ana + ${tree.reduce((a, t) => a + t.children.length, 0)} alt kategori, ` +
+    `${SHARDS} detay parçası.`,
 );

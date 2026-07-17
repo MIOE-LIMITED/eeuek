@@ -22,6 +22,7 @@ export default async function ProductPage({ params }) {
     name: p.n,
     brand: p.b,
     category: p.cat,
+    categoryHref: p.catSlug ? `/kategori/${p.catSlug}` : '/kategoriler',
     badge: p.stok ? 'STOKTAN TESLİM' : 'TEMİN EDİLEBİLİR',
     stok: Boolean(p.stok),
     cond: p.cond,

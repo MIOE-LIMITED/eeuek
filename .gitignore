@@ -46,3 +46,4 @@ dokumanlar/*
 /public/veri/
 /public/gorseller/
 /lib/catalog-slugs.json
+/lib/category-slugs.json

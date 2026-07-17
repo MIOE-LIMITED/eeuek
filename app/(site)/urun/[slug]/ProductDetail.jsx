@@ -20,7 +20,7 @@ export default function ProductDetail({ product }) {
       <div className="ks-crumb-bar">
         <div className="ks-wrap">
           <Link href="/">Ana Sayfa</Link> / <Link href="/urunler">Ürün Listesi</Link> /{' '}
-          <Link href="/kategoriler">{p.category}</Link> /{' '}
+          <Link href={p.categoryHref}>{p.category}</Link> /{' '}
           <span className="ks-crumb-cur">{p.code}</span>
         </div>
       </div>
@@ -42,7 +42,7 @@ export default function ProductDetail({ product }) {
           <h1>{p.name}</h1>
           <div className="ks-buy-facts">
             <div>Marka: <b>{p.brand}</b></div>
-            <div>Kategori: <Link href="/kategoriler" style={{ fontWeight: 600 }}>{p.category}</Link></div>
+            <div>Kategori: <Link href={p.categoryHref} style={{ fontWeight: 600 }}>{p.category}</Link></div>
             <div>Durum: <b>{p.cond}</b></div>
           </div>
           {p.description ? <p className="ks-buy-desc">{p.description}</p> : null}
