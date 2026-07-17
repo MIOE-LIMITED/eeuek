@@ -19,6 +19,7 @@ export default function UrunlerPage() {
   const [q, setQ] = useState('');
   const [cond, setCond] = useState('Tümü');
   const [brands, setBrands] = useState({});
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const list = useMemo(() => {
     const anyBrand = Object.values(brands).some(Boolean);
@@ -49,7 +50,15 @@ export default function UrunlerPage() {
       </div>
 
       <div className="ks-list-layout">
-        <aside className="ks-aside">
+        <button
+          type="button"
+          className="ks-filter-toggle"
+          aria-expanded={filtersOpen}
+          onClick={() => setFiltersOpen((v) => !v)}
+        >
+          FİLTRELE {filtersOpen ? '▴' : '▾'}
+        </button>
+        <aside className={`ks-aside${filtersOpen ? ' is-open' : ''}`}>
           <div>
             <h3 className="ks-filter-h">DURUM</h3>
             <div className="ks-cond-filters">

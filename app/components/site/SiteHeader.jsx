@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { useQuote } from './QuoteContext';
 
 const NAV = [
@@ -27,6 +28,11 @@ export default function SiteHeader() {
   const pathname = usePathname() || '/';
   const active = activeKey(pathname);
   const { openQuote, rowCount } = useQuote();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
 
   return (
     <>
@@ -35,7 +41,7 @@ export default function SiteHeader() {
           <div className="ks-utility-left">
             <a href="tel:+902163444819" className="ks-u-strong">☎ 0216 344 48 19</a>
             <a href="https://wa.me/905324246219" className="ks-u-strong">WhatsApp 0532 424 6219</a>
-            <a href="mailto:info@klimasun.com.tr">info@klimasun.com.tr</a>
+            <a href="mailto:info@klimasun.com.tr" className="ks-u-mail">info@klimasun.com.tr</a>
           </div>
           <div className="ks-spacer" />
           <div className="ks-utility-right">
@@ -61,7 +67,25 @@ export default function SiteHeader() {
             HIZLI TEKLİF
             <span className="ks-quote-badge">{rowCount}</span>
           </button>
+          <button
+            type="button"
+            className="ks-burger"
+            aria-label={menuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            {menuOpen ? '✕' : '☰'}
+          </button>
         </div>
+        {menuOpen && (
+          <nav className="ks-mobilenav">
+            {NAV.map((n) => (
+              <Link key={n.key} href={n.href} className={n.key === active ? 'is-active' : undefined}>
+                {n.label}
+              </Link>
+            ))}
+          </nav>
+        )}
       </header>
     </>
   );
