@@ -41,3 +41,8 @@ dokumanlar/*
 !dokumanlar/**/*.PDF
 !dokumanlar/**/*.docx
 !dokumanlar/**/*.DOCX
+
+# Üretilen katalog verisi (scripts/build-catalog.mjs üretir)
+/public/veri/
+/public/gorseller/
+/lib/catalog-slugs.json

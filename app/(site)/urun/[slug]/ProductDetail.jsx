@@ -4,16 +4,12 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Placeholder from '@/app/components/site/Placeholder';
 import { CONDITIONS, useQuote } from '@/app/components/site/QuoteContext';
-import { SAMPLE_DETAIL } from '@/lib/catalog';
-
-const THUMBS = ['önden', 'yandan', 'montaj', 'etiket'];
 
 export default function ProductDetail({ product }) {
   const p = product;
   const { addItem } = useQuote();
   const [qty, setQty] = useState(1);
-  const [cond, setCond] = useState('Sıfır');
-  const [activeThumb, setActiveThumb] = useState(0);
+  const [cond, setCond] = useState(p.cond || 'Sıfır');
 
   function addToQuote() {
     for (let i = 0; i < qty; i++) addItem(p.code, cond);
@@ -31,34 +27,25 @@ export default function ProductDetail({ product }) {
 
       <div className="ks-detail-top">
         <div className="ks-gallery">
-          <Placeholder w={600} h={460} label={`${p.code} — ana ürün görseli`} className="ks-gallery-main" />
-          <div className="ks-thumbs">
-            {THUMBS.map((label, i) => (
-              <Placeholder
-                key={label}
-                w={140}
-                h={100}
-                label={label}
-                className={`ks-thumb${i === activeThumb ? ' is-active' : ''}`}
-                style={{ cursor: 'pointer' }}
-                onClick={() => setActiveThumb(i)}
-              />
-            ))}
-          </div>
+          {p.img ? (
+            <img src={p.img} alt={p.name} className="ks-gallery-main ks-gallery-img" loading="eager" />
+          ) : (
+            <Placeholder w={600} h={460} label={`${p.code} — görsel hazırlanıyor`} className="ks-gallery-main" />
+          )}
         </div>
 
         <div className="ks-buy">
           <div className="ks-buy-tags">
             <span className="ks-buy-code">{p.code}</span>
-            <span className="ks-badge stok">{p.badge}</span>
+            <span className={`ks-badge ${p.stok ? 'stok' : 'temin'}`}>{p.badge}</span>
           </div>
           <h1>{p.name}</h1>
           <div className="ks-buy-facts">
             <div>Marka: <b>{p.brand}</b></div>
             <div>Kategori: <Link href="/kategoriler" style={{ fontWeight: 600 }}>{p.category}</Link></div>
-            <div>Garanti: <b>{p.warranty}</b></div>
+            <div>Durum: <b>{p.cond}</b></div>
           </div>
-          <p className="ks-buy-desc">{p.description}</p>
+          {p.description ? <p className="ks-buy-desc">{p.description}</p> : null}
 
           <div className="ks-buy-box">
             <div className="ks-buy-condrow">
@@ -104,38 +91,48 @@ export default function ProductDetail({ product }) {
         </div>
       </div>
 
-      <div className="ks-specs-wrap">
-        <h2 className="ks-specs-h">TEKNİK ÖZELLİKLER</h2>
-        <div className="ks-specs">
-          {SAMPLE_DETAIL.specs.map(([k, v]) => (
-            <div className="ks-spec" key={k}>
-              <span>{k}</span>
-              <b>{v}</b>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="ks-related-wrap">
-        <div className="ks-related-head">
-          <h2>BENZER ÜRÜNLER</h2>
-          <Link href="/urunler">TÜMÜNÜ GÖR →</Link>
-        </div>
-        <div className="ks-grid-4">
-          {SAMPLE_DETAIL.related.map((r) => (
-            <div className="ks-prod-card" key={r.code}>
-              <Placeholder w={300} h={170} label={r.code} />
-              <div className="ks-related-body">
-                <div className="ks-prod-code">{r.code}</div>
-                <div className="ks-related-name">{r.name}</div>
-                <button type="button" className="ks-related-add" onClick={() => addItem(r.code, 'Sıfır')}>
-                  + TEKLİFE EKLE
-                </button>
+      {p.specs.length > 0 && (
+        <div className="ks-specs-wrap">
+          <h2 className="ks-specs-h">TEKNİK ÖZELLİKLER</h2>
+          <div className="ks-specs">
+            {p.specs.map(([k, v]) => (
+              <div className="ks-spec" key={k}>
+                <span>{k}</span>
+                <b>{String(v)}</b>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {p.related.length > 0 && (
+        <div className="ks-related-wrap">
+          <div className="ks-related-head">
+            <h2>BENZER ÜRÜNLER</h2>
+            <Link href="/urunler">TÜMÜNÜ GÖR →</Link>
+          </div>
+          <div className="ks-grid-4">
+            {p.related.map((r) => (
+              <div className="ks-prod-card" key={r.s}>
+                <Link href={`/urun/${r.s}`} style={{ display: 'block' }}>
+                  {r.th ? (
+                    <img src={r.th} alt={r.n} className="ks-prod-img" loading="lazy" />
+                  ) : (
+                    <Placeholder w={300} h={170} label={r.c} />
+                  )}
+                </Link>
+                <div className="ks-related-body">
+                  <div className="ks-prod-code">{r.c}</div>
+                  <Link href={`/urun/${r.s}`} className="ks-related-name">{r.n}</Link>
+                  <button type="button" className="ks-related-add" onClick={() => addItem(r.c, 'Sıfır')}>
+                    + TEKLİFE EKLE
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </>
   );
 }

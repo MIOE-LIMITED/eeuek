@@ -1,17 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuote } from './QuoteContext';
 
 export default function HeroSearch() {
-  const { addItem, openQuote } = useQuote();
+  const { openQuote } = useQuote();
+  const router = useRouter();
   const [text, setText] = useState('');
 
   function onSubmit(e) {
     e.preventDefault();
-    // Aramada girilen kod/ürün adı doğrudan teklif satırına eklenir (prototip davranışı).
-    addItem(text.trim());
-    setText('');
+    const q = text.trim();
+    router.push(q ? `/urunler?q=${encodeURIComponent(q)}` : '/urunler');
   }
 
   return (

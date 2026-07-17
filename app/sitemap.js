@@ -1,5 +1,5 @@
 import { POPULAR } from '@/lib/popular';
-import { PRODUCTS } from '@/lib/catalog';
+import PRODUCT_SLUGS from '@/lib/catalog-slugs.json';
 import { recentSlugs } from '@/lib/store';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://klimasun.vercel.app';
@@ -25,9 +25,9 @@ export default async function sitemap() {
     priority,
   }));
 
-  for (const p of PRODUCTS) {
+  for (const slug of PRODUCT_SLUGS) {
     entries.push({
-      url: `${SITE_URL}/urun/${encodeURIComponent(p.code)}`,
+      url: `${SITE_URL}/urun/${slug}`,
       lastModified: now,
       changeFrequency: 'weekly',
       priority: 0.6,

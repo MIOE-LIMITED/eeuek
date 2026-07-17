@@ -1197,3 +1197,45 @@
   .ks-drawer { width: 100vw; }
   .ks-empty { padding: 32px 18px; }
 }
+
+/* ==========================================================================
+   Gerçek katalog: ürün görselleri, marka listesi, sayfalama düğmeleri
+   ========================================================================== */
+.ks-prod-img {
+  width: 100%;
+  aspect-ratio: 30 / 19;
+  object-fit: contain;
+  display: block;
+  background: #fff;
+  border-bottom: 1px solid var(--line-soft);
+  padding: 8px;
+}
+.ks-gallery-img {
+  width: 100%;
+  aspect-ratio: 60 / 46;
+  object-fit: contain;
+  background: #fff;
+  padding: 16px;
+}
+.ks-brand-scroll {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 6px;
+  scrollbar-width: thin;
+}
+.ks-pager button {
+  font-weight: 600;
+  font-size: 13.5px;
+  min-width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-2);
+  color: var(--ink-strong);
+  background: #fff;
+  cursor: pointer;
+}
+.ks-pager button:hover { border-color: var(--amber); }
+.ks-pager button.next { padding: 0 14px; }
+.ks-pager { flex-wrap: wrap; }
