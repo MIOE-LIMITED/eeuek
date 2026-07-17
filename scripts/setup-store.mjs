@@ -1,20 +1,31 @@
 #!/usr/bin/env node
 /**
- * Tek seferlik kurulum scripti.
+ * Gemini File Search kurulum scripti.
  *
- *  1. Bir Gemini File Search Store oluşturur.
- *  2. /dokumanlar klasöründeki tüm PDF ve DOCX dosyalarını yükleyip indeksler.
- *  3. Store adını ekrana basar — bu satırı .env dosyanıza ekleyin.
+ *  1. Bir Gemini File Search Store oluşturur (veya var olanı yeniden kullanır).
+ *  2. Belge klasörlerindeki tüm PDF ve DOCX dosyalarını yükleyip indeksler:
+ *       - dokumanlar/
+ *       - klimasun-2026/assets/docs/
+ *  3. Store adını ekrana basar — bu satırı GEMINI_FILE_SEARCH_STORE olarak kaydedin.
  *
- * Çalıştırma:
+ * Yerelde çalıştırma (.env içinde GEMINI_API_KEY ile):
  *   npm run setup-store
- * (Bu komut `node --env-file=.env scripts/setup-store.mjs` çalıştırır.)
+ * CI / Actions'ta (ortam değişkeniyle):
+ *   GEMINI_API_KEY=... node scripts/setup-store.mjs
+ *
+ * Var olan store'a ekleme (yeni store açmadan):
+ *   GEMINI_FILE_SEARCH_STORE=fileSearchStores/... node scripts/setup-store.mjs
  */
 import { GoogleGenAI } from '@google/genai';
 import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 
-/** dokumanlar/ klasörünü alt klasörleriyle birlikte tarayıp PDF/DOCX yollarını döndürür. */
+const STORE_DISPLAY_NAME = 'klimasun-dokumanlar';
+const DOC_DIRS = ['dokumanlar', 'klimasun-2026/assets/docs'];
+const ALLOWED_EXT = new Set(['.pdf', '.docx']);
+const POLL_MS = 4000;
+
+/** Bir klasörü alt klasörleriyle tarayıp PDF/DOCX yollarını döndürür. */
 async function walkDocs(dir, baseDir) {
   let out = [];
   let entries = [];
@@ -34,11 +45,6 @@ async function walkDocs(dir, baseDir) {
   return out;
 }
 
-const STORE_DISPLAY_NAME = 'klimasun-dokumanlar';
-const DOCS_DIR = path.resolve(process.cwd(), 'dokumanlar');
-const ALLOWED_EXT = new Set(['.pdf', '.docx']);
-const POLL_MS = 4000;
-
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -46,58 +52,74 @@ function sleep(ms) {
 async function main() {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    console.error('HATA: GEMINI_API_KEY tanımlı değil. .env dosyanızı kontrol edin.');
+    console.error('HATA: GEMINI_API_KEY tanımlı değil (yerelde .env, CI\'da secret).');
     process.exit(1);
   }
 
   const ai = new GoogleGenAI({ apiKey });
 
-  console.log('→ File Search Store oluşturuluyor…');
-  const store = await ai.fileSearchStores.create({
-    config: { displayName: STORE_DISPLAY_NAME },
-  });
-  console.log(`✓ Store oluşturuldu: ${store.name}`);
+  // Var olan store adı verildiyse ona ekle; verilmediyse yenisini oluştur.
+  const existing = (process.env.GEMINI_FILE_SEARCH_STORE || '').trim();
+  let storeName;
+  if (existing) {
+    storeName = existing;
+    console.log(`→ Var olan store kullanılıyor: ${storeName}`);
+  } else {
+    console.log('→ File Search Store oluşturuluyor…');
+    const store = await ai.fileSearchStores.create({
+      config: { displayName: STORE_DISPLAY_NAME },
+    });
+    storeName = store.name;
+    console.log(`✓ Store oluşturuldu: ${storeName}`);
+  }
 
-  const files = await walkDocs(DOCS_DIR, DOCS_DIR);
+  const cwd = process.cwd();
+  let files = [];
+  for (const dir of DOC_DIRS) {
+    const abs = path.resolve(cwd, dir);
+    files = files.concat(await walkDocs(abs, cwd));
+  }
 
   if (files.length === 0) {
-    console.warn('! dokumanlar/ içinde (alt klasörler dahil) PDF veya DOCX bulunamadı.');
-    console.warn('  Dosyaları ekleyip scripti tekrar çalıştırabilir ya da');
-    console.warn('  aşağıdaki store adını şimdiden .env dosyanıza ekleyebilirsiniz.');
+    console.warn('! Belge klasörlerinde PDF/DOCX bulunamadı:', DOC_DIRS.join(', '));
   } else {
-    console.log(`→ ${files.length} doküman bulundu (alt klasörler dahil).`);
+    console.log(`→ ${files.length} doküman bulundu (${DOC_DIRS.join(', ')}).`);
   }
 
   let okCount = 0;
   let failCount = 0;
   for (const { full, rel } of files) {
     process.stdout.write(`→ Yükleniyor: ${rel} `);
-    let operation = await ai.fileSearchStores.uploadToFileSearchStore({
-      file: full,
-      fileSearchStoreName: store.name,
-      config: { displayName: rel },
-    });
+    try {
+      let operation = await ai.fileSearchStores.uploadToFileSearchStore({
+        file: full,
+        fileSearchStoreName: storeName,
+        config: { displayName: rel },
+      });
 
-    while (!operation.done) {
-      await sleep(POLL_MS);
-      operation = await ai.operations.get({ operation });
-      process.stdout.write('.');
-    }
-    if (operation.error) {
+      while (!operation.done) {
+        await sleep(POLL_MS);
+        operation = await ai.operations.get({ operation });
+        process.stdout.write('.');
+      }
+      if (operation.error) {
+        failCount++;
+        console.log(` ✗ HATA: ${operation.error.message || JSON.stringify(operation.error)}`);
+      } else {
+        okCount++;
+        console.log(' ✓ indekslendi');
+      }
+    } catch (err) {
       failCount++;
-      console.log(` ✗ HATA: ${operation.error.message || JSON.stringify(operation.error)}`);
-    } else {
-      okCount++;
-      console.log(' ✓ indekslendi');
+      console.log(` ✗ HATA: ${err?.message || err}`);
     }
   }
 
   console.log('\n========================================================');
   console.log(`BİTTİ. ${okCount} doküman indekslendi${failCount ? `, ${failCount} başarısız` : ''}.`);
-  console.log('Aşağıdaki satırı .env dosyanıza ekleyin:\n');
-  console.log(`GEMINI_FILE_SEARCH_STORE=${store.name}`);
-  console.log('\nVercel kullanıyorsanız aynı değeri Environment Variables');
-  console.log('bölümüne de ekleyin.');
+  console.log('Aşağıdaki değeri GEMINI_FILE_SEARCH_STORE olarak kaydedin');
+  console.log('(GitHub repo secret + gerekiyorsa Cloudflare Worker secret):\n');
+  console.log(`GEMINI_FILE_SEARCH_STORE=${storeName}`);
   console.log('========================================================');
 }
 

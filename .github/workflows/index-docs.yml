@@ -1,0 +1,79 @@
+# Gemini File Search — belgeleri indeksle
+#
+# Belge klasörlerindeki (dokumanlar/ + klimasun-2026/assets/docs/) tüm PDF/DOCX'leri
+# bir Gemini File Search Store'a yükler. GEMINI_API_KEY repo secret'ından okunur —
+# anahtar yalnızca bu çalışma içinde kullanılır, hiçbir yere sızmaz.
+#
+# Çalıştırma: Actions → "Gemini File Search — belgeleri indeksle" → Run workflow.
+# Çıkan store adı (GEMINI_FILE_SEARCH_STORE=...) iş özetinde (Summary) gösterilir;
+# o değeri repo secret olarak GEMINI_FILE_SEARCH_STORE'a ekleyip Deploy workflow'unu
+# tekrar çalıştırın — böylece canlı asistan bu belgelerden cevap üretir.
+#
+# Gerekli secret: GEMINI_API_KEY
+# İsteğe bağlı input: reuse_store — var olan bir store'a eklemek için store adı.
+
+name: Gemini File Search — belgeleri indeksle
+
+on:
+  workflow_dispatch:
+    inputs:
+      reuse_store:
+        description: 'Var olan store adı (fileSearchStores/...). Boş bırakılırsa yenisi oluşturulur.'
+        required: false
+        default: ''
+
+concurrency:
+  group: gemini-index-docs
+  cancel-in-progress: false
+
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Kodu çek
+        uses: actions/checkout@v4
+
+      - name: Node 22 kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Bağımlılıkları kur
+        run: npm ci
+
+      - name: Gemini anahtarı kontrolü
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "::error::GEMINI_API_KEY repo secret'ı tanımlı değil. Settings → Secrets and variables → Actions altından ekleyin."
+            exit 1
+          fi
+
+      - name: Belgeleri indeksle
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_FILE_SEARCH_STORE: ${{ github.event.inputs.reuse_store }}
+        run: |
+          set -o pipefail
+          node scripts/setup-store.mjs | tee store-output.txt
+          STORE=$(grep '^GEMINI_FILE_SEARCH_STORE=' store-output.txt | tail -1 | cut -d= -f2-)
+          {
+            echo "## Gemini File Search — sonuç"
+            echo ""
+            if [ -n "$STORE" ]; then
+              echo "Store adı:"
+              echo ""
+              echo '```'
+              echo "GEMINI_FILE_SEARCH_STORE=$STORE"
+              echo '```'
+              echo ""
+              echo "Bu değeri **Settings → Secrets and variables → Actions** altında"
+              echo "\`GEMINI_FILE_SEARCH_STORE\` secret'ı olarak ekleyin, sonra Deploy"
+              echo "workflow'unu çalıştırın."
+            else
+              echo "Store adı yakalanamadı — iş kayıtlarına (log) bakın."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
