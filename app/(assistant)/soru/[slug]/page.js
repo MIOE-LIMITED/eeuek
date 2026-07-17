@@ -86,7 +86,7 @@ export default async function SoruPage({ params }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
-      <Link href="/" className="back-link">
+      <Link href="/asistan" className="back-link">
         ← Yeni soru sor
       </Link>
       <h1 className="question-title">{qa.question}</h1>

@@ -16,6 +16,12 @@ build/
 # vercel
 .vercel
 
+# cloudflare / opennext
+.open-next/
+.wrangler/
+.dev.vars
+cloudflare-env.d.ts
+
 # misc
 .DS_Store
 *.log

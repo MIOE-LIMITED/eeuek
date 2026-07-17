@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "klimasun",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-03-25",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": ".open-next/assets"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "NEXT_PUBLIC_SITE_URL": "https://klimasun.workers.dev"
+  }
+  // Gizli değerler (GEMINI_API_KEY, KV_REST_API_URL, KV_REST_API_TOKEN vb.)
+  // "vars" içine YAZILMAZ. Bunun yerine:
+  //   npx wrangler secret put GEMINI_API_KEY
+  // ile eklenir; yerel geliştirmede ise .dev.vars dosyasına konur.
+}

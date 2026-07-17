@@ -1,8 +1,14 @@
 import Link from 'next/link';
-import SearchBox from './components/SearchBox';
+import SearchBox from '@/app/components/SearchBox';
 import { POPULAR } from '@/lib/popular';
 
-export default function HomePage() {
+export const metadata = {
+  title: 'KlimaSun Asistan — HVAC Soru & Cevap',
+  description:
+    'Endüstriyel soğutma ve HVAC sorularınıza kaynaklı, ücretsiz cevaplar. F-Gaz, evaporatif soğutma, pano kliması, chiller.',
+};
+
+export default function AssistantHomePage() {
   return (
     <div className="container">
       <section className="hero">
