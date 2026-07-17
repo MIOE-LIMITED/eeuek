@@ -60,7 +60,6 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || 'dd8b53f237c2eba4f2a5989936672b5d' }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_FILE_SEARCH_STORE: ${{ secrets.GEMINI_FILE_SEARCH_STORE }}
           KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
           KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
         run: |
@@ -72,7 +71,7 @@ jobs:
               echo "$1 repo secret'ı boş — atlandı"
             fi
           }
+          # GEMINI_FILE_SEARCH_STORE gizli değil; wrangler.jsonc vars içinde tutulur.
           put GEMINI_API_KEY "$GEMINI_API_KEY"
-          put GEMINI_FILE_SEARCH_STORE "$GEMINI_FILE_SEARCH_STORE"
           put KV_REST_API_URL "$KV_REST_API_URL"
           put KV_REST_API_TOKEN "$KV_REST_API_TOKEN"

@@ -183,12 +183,22 @@ yalnızca Admin yetkisiyle girilebilir):
 | --- | --- | --- |
 | `CLOUDFLARE_API_TOKEN` | ✅ | Workers deploy yetkili token |
 | `GEMINI_API_KEY` | AI için | Bölüm 2'deki gibi alınır |
-| `GEMINI_FILE_SEARCH_STORE` | AI için | Bölüm 3'teki gibi `npm run setup-store` ile üretilir |
 | `CLOUDFLARE_ACCOUNT_ID` | ▫️ | Boşsa mevcut Klimasun hesabı kullanılır |
 | `KV_REST_API_URL` / `KV_REST_API_TOKEN` | ▫️ | Upstash Redis (soru-cevap kalıcı deposu) |
 
 Workflow, girilen secrets'ları deploy sonrası `wrangler secret put` ile
 Worker'a otomatik yükler — Vercel ortam değişkeni adımının karşılığı budur.
-`npm run setup-store` bu fork'ta da aynı şekilde çalışır (script ve
-`dokumanlar/` klasörü mevcuttur); çıkan store adı Vercel yerine yukarıdaki
-GitHub secret'ına yazılır.
+
+**File Search Store (Gemini doküman Soru-Cevap):**
+
+- `GEMINI_FILE_SEARCH_STORE` gizli bir değer değildir (erişim için yine
+  `GEMINI_API_KEY` gerekir); bu yüzden secret değil, `wrangler.jsonc` →
+  `vars` içinde tutulur. Güncel değer:
+  `fileSearchStores/klimasundokumanlar-19crlh6h3r50`
+  (66 ürün/teknik katalog PDF'i — `dokumanlar/` + `klimasun-2026/assets/docs/`).
+- Store'u yeniden oluşturmak/güncellemek için: **Actions → "Gemini File
+  Search — belgeleri indeksle"** iş akışı (veya feature dalında commit
+  mesajına `[index-docs]` yazıp push). `GEMINI_API_KEY` repo secret'ından
+  okunur; çıkan store adı iş özetinde gösterilir — o adı `wrangler.jsonc`'a
+  yazıp deploy edin.
+- Anahtar/hesap değişince aynı iş akışı yeni anahtarla tekrar çalıştırılır.

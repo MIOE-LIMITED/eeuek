@@ -12,10 +12,13 @@
     "enabled": true
   },
   "vars": {
-    "NEXT_PUBLIC_SITE_URL": "https://klimasun.mioe-tr.workers.dev"
+    "NEXT_PUBLIC_SITE_URL": "https://klimasun.mioe-tr.workers.dev",
+    // File Search Store adı gizli değildir (erişim için GEMINI_API_KEY gerekir),
+    // bu yüzden normal değişken olarak tutulur. Anahtar/hesap değişince
+    // index-docs iş akışını çalıştırıp buradaki adı güncelleyin.
+    "GEMINI_FILE_SEARCH_STORE": "fileSearchStores/klimasundokumanlar-19crlh6h3r50"
   }
-  // Gizli değerler (GEMINI_API_KEY, KV_REST_API_URL, KV_REST_API_TOKEN vb.)
-  // "vars" içine YAZILMAZ. Bunun yerine:
-  //   npx wrangler secret put GEMINI_API_KEY
-  // ile eklenir; yerel geliştirmede ise .dev.vars dosyasına konur.
+  // Gizli değerler (GEMINI_API_KEY, KV_REST_API_URL, KV_REST_API_TOKEN) "vars"
+  // içine YAZILMAZ. Bunlar Deploy iş akışında repo secret'larından
+  // "wrangler secret put ..." ile yüklenir; yerelde .dev.vars dosyasına konur.
 }
