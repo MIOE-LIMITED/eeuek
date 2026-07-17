@@ -21,6 +21,11 @@ on:
         description: 'Var olan store adı (fileSearchStores/...). Boş bırakılırsa yenisi oluşturulur.'
         required: false
         default: ''
+  # workflow_dispatch düğmesi yalnızca varsayılan dalda görünür. Bu dalda
+  # elle çalıştırabilmek için: commit mesajına [index-docs] yazıp push edin.
+  push:
+    branches:
+      - feat/klimasun-industrial-redesign
 
 concurrency:
   group: gemini-index-docs
@@ -28,6 +33,11 @@ concurrency:
 
 jobs:
   index:
+    # Push'ta yalnızca commit mesajı [index-docs] içeriyorsa çalışır;
+    # böylece her push'ta yeni store oluşmaz.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.head_commit.message, '[index-docs]')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
