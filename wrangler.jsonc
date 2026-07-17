@@ -12,7 +12,7 @@
     "enabled": true
   },
   "vars": {
-    "NEXT_PUBLIC_SITE_URL": "https://klimasun.workers.dev"
+    "NEXT_PUBLIC_SITE_URL": "https://klimasun.mioe-tr.workers.dev"
   }
   // Gizli değerler (GEMINI_API_KEY, KV_REST_API_URL, KV_REST_API_TOKEN vb.)
   // "vars" içine YAZILMAZ. Bunun yerine:
