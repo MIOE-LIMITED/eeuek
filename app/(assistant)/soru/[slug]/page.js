@@ -5,6 +5,7 @@ import { askKlimaSun } from '@/lib/gemini';
 import { deslugify } from '@/lib/slug';
 import { getQA, saveQA } from '@/lib/store';
 import Citations from '@/app/components/Citations';
+import Markdown from '@/app/components/Markdown';
 
 // Sayfalar ilk ziyarette üretilir, ardından 24 saat boyunca önbellekten sunulur (ISR).
 export const revalidate = 86400;
@@ -95,7 +96,9 @@ export default async function SoruPage({ params }) {
           <span className="badge">❄️ KlimaSun</span>
           <span>Yüklenen dokümanlara dayalı cevap</span>
         </div>
-        <div className="answer-body">{qa.answer}</div>
+        <div className="answer-body">
+          <Markdown>{qa.answer}</Markdown>
+        </div>
         <Citations citations={qa.citations} />
       </div>
     </article>
