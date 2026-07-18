@@ -11,11 +11,11 @@ const TR = 'tr-TR';
 // Hem /urunler (tüm katalog) hem /kategori/[slug] (kategori ürünleri) kullanır.
 // items satırı: [slug, kod, ad, marka, 2.el(0/1), stok(0/1), küçük görsel]
 // Marka sayıları bağlamsaldır: aktif arama + durum seçimine göre yeniden hesaplanır.
-export default function CatalogBrowser({ items, loading = false, initialQuery = '', categoryLinks = null, searchPlaceholder }) {
+export default function CatalogBrowser({ items, loading = false, initialQuery = '', initialBrand = '', categoryLinks = null, searchPlaceholder }) {
   const { openQuote } = useQuote();
   const [q, setQ] = useState(initialQuery);
   const [cond, setCond] = useState('Tümü');
-  const [brands, setBrands] = useState({});
+  const [brands, setBrands] = useState(() => (initialBrand ? { [initialBrand]: true } : {}));
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const ql = q.trim().toLocaleLowerCase(TR);

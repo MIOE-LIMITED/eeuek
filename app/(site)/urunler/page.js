@@ -51,6 +51,7 @@ function UrunlerContent() {
         items={data ? data.items : []}
         loading={!data}
         initialQuery={searchParams.get('q') || ''}
+        initialBrand={searchParams.get('marka') || ''}
         categoryLinks={CATEGORY_LINKS}
       />
     </>

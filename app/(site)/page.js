@@ -92,7 +92,7 @@ export default function HomePage() {
               <div className="ks-brand-card" key={name}>
                 <div className="ks-brand-name">{name}</div>
                 <div className="ks-brand-count">{count} ürün</div>
-                <Link href="/urunler" className="ks-brand-link">
+                <Link href={`/urunler?marka=${encodeURIComponent(name)}`} className="ks-brand-link">
                   TÜM ÜRÜNLERİ GÖR <span className="ks-arw">→</span>
                 </Link>
               </div>
