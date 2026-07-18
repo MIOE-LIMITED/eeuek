@@ -66,6 +66,7 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           REUSE_INPUT: ${{ github.event.inputs.reuse_store }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
           set -o pipefail
           # Store hedefi: workflow_dispatch input'u öncelikli; yoksa wrangler.jsonc'taki
@@ -75,7 +76,13 @@ jobs:
             STORE_TARGET=$(grep -oE 'fileSearchStores/[A-Za-z0-9_-]+' wrangler.jsonc | head -1 || true)
           fi
           export GEMINI_FILE_SEARCH_STORE="$STORE_TARGET"
-          echo "Hedef store: ${STORE_TARGET:-<yeni oluşturulacak>}"
+          # Commit mesajında [rebuild-store] varsa: eski store silinip temiz yeni store kurulur.
+          if printf '%s' "$COMMIT_MSG" | grep -q '\[rebuild-store\]'; then
+            export REBUILD=1
+            echo "REBUILD modu: eski store (${STORE_TARGET:-yok}) silinip yenisi kurulacak."
+          else
+            echo "Hedef store: ${STORE_TARGET:-<yeni oluşturulacak>}"
+          fi
           node scripts/setup-store.mjs | tee store-output.txt
           STORE=$(grep '^GEMINI_FILE_SEARCH_STORE=' store-output.txt | tail -1 | cut -d= -f2-)
           {

@@ -75,17 +75,33 @@ async function main() {
 
   const ai = new GoogleGenAI({ apiKey });
 
-  // Var olan store adı verildiyse ona ekle; verilmediyse yenisini oluştur.
   const existing = (process.env.GEMINI_FILE_SEARCH_STORE || '').trim();
+  const rebuild = process.env.REBUILD === '1';
   let storeName;
-  if (existing) {
+
+  if (rebuild) {
+    // Temiz yeniden kurulum: (varsa) eski store'u sil, sıfırdan yeni store oluştur.
+    // Kopya/dolu store sorununu tek seferde giderir; skip mantığından bağımsızdır.
+    if (existing) {
+      console.log(`→ REBUILD: eski store siliniyor: ${existing}`);
+      try {
+        await ai.fileSearchStores.delete({ name: existing, config: { force: true } });
+        console.log('✓ Eski store silindi (depolama boşaldı).');
+      } catch (err) {
+        console.warn('! Eski store silinemedi (yoksa sorun değil):', err?.message || err);
+      }
+    }
+    console.log('→ Yeni File Search Store oluşturuluyor…');
+    const store = await ai.fileSearchStores.create({ config: { displayName: STORE_DISPLAY_NAME } });
+    storeName = store.name;
+    console.log(`✓ Yeni store: ${storeName}`);
+  } else if (existing) {
+    // Var olan store'a ekleme (zaten yüklü olanlar atlanır).
     storeName = existing;
     console.log(`→ Var olan store kullanılıyor: ${storeName}`);
   } else {
     console.log('→ File Search Store oluşturuluyor…');
-    const store = await ai.fileSearchStores.create({
-      config: { displayName: STORE_DISPLAY_NAME },
-    });
+    const store = await ai.fileSearchStores.create({ config: { displayName: STORE_DISPLAY_NAME } });
     storeName = store.name;
     console.log(`✓ Store oluşturuldu: ${storeName}`);
   }
@@ -104,8 +120,9 @@ async function main() {
   }
 
   // Var olan store'a ekleme yapılıyorsa, zaten yüklü dokümanları atla (kopya olmasın).
+  // Rebuild'de store yeni ve boş olduğundan listelemeye gerek yok.
   let already = new Set();
-  if (existing) {
+  if (existing && !rebuild) {
     already = await existingDisplayNames(ai, storeName);
     if (already.size) console.log(`→ Store'da zaten ${already.size} doküman var; bunlar atlanacak.`);
   }
