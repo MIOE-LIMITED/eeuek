@@ -8,6 +8,9 @@ const nextConfig = {
 
 export default nextConfig;
 
-// `next dev` sırasında Cloudflare bağlamını (env, bindings) sağlar.
-// Yalnızca geliştirmede etkilidir; production build'i etkilemez.
-initOpenNextCloudflareForDev();
+// Cloudflare bağlamını (env, bindings) yalnızca `next dev` sırasında sağlar.
+// Sadece geliştirmede çağrılır; `next build`/`next start` sırasında miniflare
+// başlatmaya çalışıp (workerd) gereksiz yere takılmasını önler.
+if (process.env.NODE_ENV === 'development') {
+  initOpenNextCloudflareForDev();
+}

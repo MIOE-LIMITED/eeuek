@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import SearchBox from '@/app/components/SearchBox';
+import ChatBox from '@/app/components/site/ChatBox';
 import { POPULAR } from '@/lib/popular';
 
 export const metadata = {
@@ -19,19 +19,23 @@ export default function AssistantHomePage() {
           <h1>Yapay Zekâ Asistanı</h1>
           <p>
             F-Gaz, evaporatif soğutma, pano kliması, chiller… 65 teknik katalogdan{' '}
-            <b style={{ color: '#fff' }}>kaynak göstererek</b>, Türkçe ve üyeliksiz cevaplar.
+            <b style={{ color: '#fff' }}>kaynak göstererek</b>, Türkçe ve üyeliksiz. Sorun,
+            gerekirse sohbeti sürdürün.
           </p>
-          <div className="ks-ask-hero">
-            <SearchBox />
-          </div>
         </div>
       </div>
 
-      <section className="ks-section soft">
+      <section className="ks-section light" style={{ paddingBottom: 32 }}>
+        <div className="ks-wrap">
+          <ChatBox />
+        </div>
+      </section>
+
+      <section className="ks-section soft" style={{ paddingTop: 32 }}>
         <div className="ks-wrap">
           <h2 className="ks-h2">POPÜLER SORULAR</h2>
           <p className="ks-lead">
-            En çok merak edilen konular — tıklayın, dokümanlara dayalı hazır cevabı görün.
+            Hazır cevabı olan konular — tıklayın, dokümanlara dayalı yanıtı anında görün.
           </p>
           <div className="ks-ask-grid">
             {POPULAR.map((item) => (
