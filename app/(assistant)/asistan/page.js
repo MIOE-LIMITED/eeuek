@@ -10,31 +10,39 @@ export const metadata = {
 
 export default function AssistantHomePage() {
   return (
-    <div className="container">
-      <section className="hero">
-        <h1>
-          Endüstriyel soğutma ve HVAC sorularınıza
-          <br />
-          <span className="accent">kaynaklı</span> cevaplar
-        </h1>
-        <p className="sub">
-          KlimaSun, Erdinç Klima'nın yapay zekâ asistanıdır. F-Gaz, evaporatif soğutma, pano
-          kliması, chiller ve daha fazlasını sorun — ücretsiz, üyeliksiz, kaynak göstererek.
-        </p>
-        <SearchBox />
-      </section>
+    <>
+      <div className="ks-pagehero">
+        <div className="ks-wrap">
+          <div className="ks-crumb">
+            <Link href="/">Ana Sayfa</Link> / <span className="ks-crumb-cur">Asistan</span>
+          </div>
+          <h1>Yapay Zekâ Asistanı</h1>
+          <p>
+            F-Gaz, evaporatif soğutma, pano kliması, chiller… 65 teknik katalogdan{' '}
+            <b style={{ color: '#fff' }}>kaynak göstererek</b>, Türkçe ve üyeliksiz cevaplar.
+          </p>
+          <div className="ks-ask-hero">
+            <SearchBox />
+          </div>
+        </div>
+      </div>
 
-      <section>
-        <h2 className="section-title">Popüler sorular</h2>
-        <div className="q-grid">
-          {POPULAR.map((item) => (
-            <Link key={item.slug} href={`/soru/${item.slug}`} className="q-card" prefetch={false}>
-              <span className="q-icon">❄️ Soru</span>
-              <span className="q-text">{item.question}</span>
-            </Link>
-          ))}
+      <section className="ks-section soft">
+        <div className="ks-wrap">
+          <h2 className="ks-h2">POPÜLER SORULAR</h2>
+          <p className="ks-lead">
+            En çok merak edilen konular — tıklayın, dokümanlara dayalı hazır cevabı görün.
+          </p>
+          <div className="ks-ask-grid">
+            {POPULAR.map((item) => (
+              <Link key={item.slug} href={`/soru/${item.slug}`} className="ks-ask-card" prefetch={false}>
+                <span className="ks-ask-card-q">{item.question}</span>
+                <span className="ks-ask-card-go">Cevabı gör <span>→</span></span>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
-    </div>
+    </>
   );
 }

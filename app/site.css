@@ -1304,3 +1304,219 @@
 @media (max-width: 640px) {
   .ks-ai-cta { width: 100%; text-align: center; }
 }
+
+/* ==========================================================================
+   Asistan (navy/amber) — /asistan ve /soru/[slug]
+   ========================================================================== */
+@keyframes ksSpin { to { transform: rotate(360deg); } }
+
+/* --- Soru sorma kutusu --- */
+.ks-ask-hero { margin-top: 26px; max-width: 760px; }
+.ks-ask { display: flex; flex-direction: column; gap: 10px; }
+.ks-ask-box {
+  display: flex;
+  align-items: stretch;
+  background: #fff;
+  padding: 6px;
+  gap: 6px;
+}
+.ks-ask-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  resize: none;
+  font: 400 16px var(--font);
+  padding: 13px 14px;
+  color: var(--ink);
+  line-height: 1.5;
+  max-height: 160px;
+}
+.ks-ask-btn {
+  flex: none;
+  background: var(--amber);
+  color: var(--navy);
+  border: none;
+  font: 700 15px var(--font);
+  letter-spacing: 0.08em;
+  padding: 0 30px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88px;
+}
+.ks-ask-btn:hover { background: var(--amber-hover); }
+.ks-ask-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.ks-spin {
+  width: 18px; height: 18px; border-radius: 999px;
+  border: 2px solid rgba(15, 27, 45, 0.25); border-top-color: var(--navy);
+  animation: ksSpin 0.7s linear infinite;
+}
+.ks-ask-error {
+  background: #fdecec; color: #b23a3a; border: 1px solid #f3c9c9;
+  font-size: 13.5px; padding: 10px 14px;
+}
+.ks-ask-hint { margin: 2px 0 0; font-size: 13px; color: var(--on-navy-2); }
+
+/* --- Popüler sorular kartları --- */
+.ks-ask-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.ks-ask-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--amber);
+  padding: 22px 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(15, 27, 45, 0.06);
+  min-height: 132px;
+}
+.ks-ask-card:hover { border-color: var(--amber); box-shadow: 0 6px 20px rgba(15, 27, 45, 0.08); }
+.ks-ask-card-q { font-weight: 600; font-size: 15px; line-height: 1.45; color: var(--navy); flex: 1; }
+.ks-ask-card-go { font: 600 13px var(--font); letter-spacing: 0.06em; color: var(--amber-ink); }
+.ks-ask-card-go span { color: var(--amber); }
+
+/* --- Cevap sayfası --- */
+.ks-answer-wrap { max-width: 880px; padding-top: 32px; padding-bottom: 72px; }
+.ks-answer-back {
+  display: inline-block;
+  font: 600 13px var(--font);
+  letter-spacing: 0.04em;
+  color: var(--amber-ink);
+  margin-bottom: 16px;
+}
+.ks-answer-back:hover { color: var(--ink-strong); }
+.ks-answer-title {
+  font: 700 clamp(24px, 4.6vw, 36px)/1.2 var(--cond);
+  color: var(--ink-strong);
+  letter-spacing: 0.01em;
+  margin: 0 0 20px;
+  text-wrap: balance;
+}
+.ks-answer-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--amber);
+  padding: 28px 30px;
+  box-shadow: 0 1px 3px rgba(15, 27, 45, 0.06);
+}
+.ks-answer-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.ks-answer-cta {
+  margin-top: 26px;
+  background: var(--navy);
+  color: #fff;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+.ks-answer-cta .t { font: 700 20px var(--cond); letter-spacing: 0.04em; margin-bottom: 4px; }
+.ks-answer-cta p { margin: 0; color: var(--on-navy); font-size: 14px; max-width: 520px; }
+.ks-answer-ask {
+  flex: none;
+  background: var(--amber);
+  color: var(--navy);
+  font: 700 14px var(--font);
+  letter-spacing: 0.06em;
+  padding: 14px 26px;
+  white-space: nowrap;
+}
+.ks-answer-ask:hover { background: var(--amber-hover); color: var(--navy); }
+
+/* --- Cevap gövdesi: Markdown + KaTeX (açık tema) --- */
+.answer-body { font-size: 15.5px; line-height: 1.72; color: var(--ink); }
+.answer-body > :first-child { margin-top: 0; }
+.answer-body > :last-child { margin-bottom: 0; }
+.answer-body p { margin: 0 0 14px; }
+.answer-body h1, .answer-body h2, .answer-body h3, .answer-body h4 {
+  color: var(--ink-strong); line-height: 1.3; margin: 24px 0 10px; font-weight: 700;
+}
+.answer-body h1 { font: 700 26px var(--cond); letter-spacing: 0.02em; }
+.answer-body h2 { font: 700 22px var(--cond); letter-spacing: 0.02em; }
+.answer-body h3 {
+  font-size: 17px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--amber);
+  display: inline-block;
+}
+.answer-body h4 { font-size: 15.5px; }
+.answer-body ul, .answer-body ol { margin: 0 0 14px; padding-left: 22px; }
+.answer-body li { margin: 6px 0; }
+.answer-body li::marker { color: var(--amber-ink); }
+.answer-body strong { color: var(--ink-strong); font-weight: 700; }
+.answer-body a { color: var(--amber-ink); text-decoration: underline; }
+.answer-body code {
+  background: var(--panel-soft); border: 1px solid var(--line);
+  border-radius: 5px; padding: 1px 6px; font-size: 0.9em;
+}
+.answer-body pre {
+  background: var(--navy); color: #eaf0f8; border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; margin: 0 0 14px;
+}
+.answer-body pre code { background: none; border: none; padding: 0; color: inherit; }
+.answer-body blockquote {
+  margin: 0 0 14px; padding: 4px 16px;
+  border-left: 3px solid var(--amber); color: var(--muted-3);
+}
+.answer-body hr { border: none; border-top: 1px solid var(--line); margin: 22px 0; }
+.answer-body table {
+  width: 100%; border-collapse: collapse; margin: 0 0 14px;
+  font-size: 14.5px; display: block; overflow-x: auto;
+}
+.answer-body th, .answer-body td { border: 1px solid var(--line-2); padding: 8px 12px; text-align: left; }
+.answer-body th { background: var(--panel-soft); color: var(--ink-strong); }
+.answer-body .katex { font-size: 1.04em; }
+.answer-body .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+
+/* --- Kaynaklar (citations) --- */
+.citations { margin-top: 26px; }
+.citations h2 {
+  font: 700 13px var(--font); text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--muted); margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+}
+.citation { padding: 12px 0; border-bottom: 1px solid var(--line-soft); }
+.citation:last-child { border-bottom: none; }
+.citation .src { font-weight: 600; font-size: 14px; color: var(--ink-strong); }
+.citation .pg { color: var(--muted-2); font-weight: 400; }
+.citation .snippet {
+  margin-top: 6px; font-size: 13.5px; color: var(--muted-3); line-height: 1.6;
+  border-left: 3px solid var(--line-2); padding-left: 12px;
+}
+
+@media (max-width: 900px) {
+  .ks-ask-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .ks-ask-grid { grid-template-columns: 1fr; }
+  .ks-ask-box { flex-direction: column; }
+  .ks-ask-btn { padding: 12px; width: 100%; }
+  .ks-answer-card { padding: 20px 18px; }
+  .ks-answer-cta { flex-direction: column; align-items: stretch; }
+  .ks-answer-ask { text-align: center; }
+}
+
+/* Cevap yükleniyor iskeleti */
+.ks-answer-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 80px 20px;
+  text-align: center;
+  color: var(--muted);
+}
+.ks-answer-loading .ks-spin {
+  width: 30px; height: 30px; border-width: 3px;
+  border-color: var(--line-2); border-top-color: var(--amber-ink);
+}

@@ -82,25 +82,40 @@ export default async function SoruPage({ params }) {
   };
 
   return (
-    <article className="container answer-page">
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
-      <Link href="/asistan" className="back-link">
-        ← Yeni soru sor
-      </Link>
-      <h1 className="question-title">{qa.question}</h1>
-      <div className="answer-card">
-        <div className="answer-meta">
-          <span className="badge">❄️ KlimaSun</span>
-          <span>Yüklenen dokümanlara dayalı cevap</span>
+      <div className="ks-crumb-bar">
+        <div className="ks-wrap">
+          <Link href="/">Ana Sayfa</Link> / <Link href="/asistan">Asistan</Link> /{' '}
+          <span className="ks-crumb-cur">{qa.question}</span>
         </div>
-        <div className="answer-body">
-          <Markdown>{qa.answer}</Markdown>
-        </div>
-        <Citations citations={qa.citations} />
       </div>
-    </article>
+
+      <article className="ks-wrap ks-answer-wrap">
+        <Link href="/asistan" className="ks-answer-back">← Yeni soru sor</Link>
+        <h1 className="ks-answer-title">{qa.question}</h1>
+        <div className="ks-answer-card">
+          <div className="ks-answer-meta">
+            <span className="ks-badge stok">❄️ KlimaSun</span>
+            <span>Yüklenen dokümanlara dayalı cevap</span>
+          </div>
+          <div className="answer-body">
+            <Markdown>{qa.answer}</Markdown>
+          </div>
+          <Citations citations={qa.citations} />
+        </div>
+
+        <div className="ks-answer-cta">
+          <div>
+            <div className="t">Başka bir sorunuz mu var?</div>
+            <p>Aradığınız ürünü bulamadıysanız hızlı teklif formuyla parça kodunu gönderin.</p>
+          </div>
+          <Link href="/asistan" className="ks-answer-ask">YENİ SORU SOR →</Link>
+        </div>
+      </article>
+    </>
   );
 }
