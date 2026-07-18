@@ -25,7 +25,6 @@ function shardOf(slug) {
 
 const readJson = (p) => JSON.parse(fs.readFileSync(p, 'utf8'));
 const products = readJson(path.join(SRC, 'data/products.json'));
-const brands = readJson(path.join(SRC, 'data/brands.json'));
 const categories = readJson(path.join(SRC, 'data/categories.json'));
 const catFlat = categories.flat;
 const catTree = categories.tree;
@@ -47,15 +46,27 @@ const asItem = (p) => [
 ];
 const items = products.map(asItem);
 
+// Marka sayıları GERÇEK ürün etiketinden (bn) hesaplanır; böylece marka
+// kartındaki sayı ile filtre sonucu birebir aynı olur. Çoktan aza sıralı.
+const brandCount = new Map();
+for (const p of products) {
+  if (p.bn) brandCount.set(p.bn, (brandCount.get(p.bn) || 0) + 1);
+}
+const brandList = [...brandCount.entries()].sort(
+  (a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'tr'),
+);
+
 const katalog = {
   count: products.length,
-  brands: brands.map((b) => [b.name, b.count]),
+  brands: brandList,
   items,
 };
 
 const veriDir = path.join(ROOT, 'public/veri');
 fs.mkdirSync(path.join(veriDir, 'detay'), { recursive: true });
 fs.writeFileSync(path.join(veriDir, 'katalog.json'), JSON.stringify(katalog));
+// Markalar sayfası için küçük, sunucuda okunabilen liste.
+fs.writeFileSync(path.join(veriDir, 'markalar.json'), JSON.stringify(brandList));
 
 // --- 2) Detay parçaları (aynı ana kategorideki komşular "benzer ürünler" olur)
 const byPc = new Map();
@@ -132,7 +143,7 @@ if (!fs.existsSync(imgDst)) {
 }
 
 console.log(
-  `Katalog üretildi: ${products.length} ürün, ${brands.length} marka, ` +
+  `Katalog üretildi: ${products.length} ürün, ${brandList.length} marka, ` +
     `${tree.length} ana + ${tree.reduce((a, t) => a + t.children.length, 0)} alt kategori, ` +
     `${SHARDS} detay parçası.`,
 );
