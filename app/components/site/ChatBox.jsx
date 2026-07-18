@@ -29,6 +29,9 @@ export default function ChatBox() {
     setMessages(history);
     setInput('');
     setLoading(true);
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 100000); // 100 sn güvenlik ağı
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
@@ -36,17 +39,49 @@ export default function ChatBox() {
         body: JSON.stringify({
           messages: history.map((m) => ({ role: m.role, text: m.text })),
         }),
+        signal: controller.signal,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'Bir hata oluştu. Lütfen tekrar deneyin.');
+
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        data = null;
+      }
+
+      if (!res.ok) {
+        // 429 = kota, 5xx = geçici sunucu/asistan hatası; arka uç mesajı varsa onu kullan.
+        const msg =
+          data?.error ||
+          (res.status === 429
+            ? 'Şu an çok yoğunuz — ücretsiz asistan kotası doldu. Lütfen yaklaşık 1 dakika sonra tekrar deneyin.'
+            : res.status >= 500
+              ? 'Asistan şu an yanıt veremedi (geçici bir sorun). Lütfen birkaç saniye sonra tekrar deneyin.'
+              : 'Bir sorun oluştu. Lütfen tekrar deneyin.');
+        setError(msg);
+        return;
+      }
+
       setMessages((m) => [
         ...m,
         { role: 'assistant', text: data.answer, citations: data.citations },
       ]);
     } catch (err) {
-      setError(err.message);
+      // Ağ / zaman aşımı hataları: ham "Load failed" yerine anlaşılır mesaj.
+      let msg;
+      if (err?.name === 'AbortError') {
+        msg =
+          'Yanıt beklenenden uzun sürdü (yoğunluk olabilir). Lütfen birkaç saniye sonra tekrar deneyin.';
+      } else if (err instanceof TypeError) {
+        msg =
+          'Bağlantı kurulamadı veya yanıt zaman aşımına uğradı. İnternetinizi kontrol edip tekrar deneyin.';
+      } else {
+        msg = 'Bir sorun oluştu. Lütfen tekrar deneyin.';
+      }
+      setError(msg);
       // Başarısız kullanıcı mesajını koru; kullanıcı tekrar gönderebilsin.
     } finally {
+      clearTimeout(timer);
       setLoading(false);
     }
   }
