@@ -184,10 +184,23 @@ yalnızca Admin yetkisiyle girilebilir):
 | `CLOUDFLARE_API_TOKEN` | ✅ | Workers deploy yetkili token |
 | `GEMINI_API_KEY` | AI için | Bölüm 2'deki gibi alınır |
 | `CLOUDFLARE_ACCOUNT_ID` | ▫️ | Boşsa mevcut Klimasun hesabı kullanılır |
-| `KV_REST_API_URL` / `KV_REST_API_TOKEN` | ▫️ | Upstash Redis (soru-cevap kalıcı deposu) |
+| `KV_REST_API_URL` / `KV_REST_API_TOKEN` | ▫️ | Yalnızca Upstash kullanılacaksa (aşağıdaki nota bakın) |
 
 Workflow, girilen secrets'ları deploy sonrası `wrangler secret put` ile
 Worker'a otomatik yükler — Vercel ortam değişkeni adımının karşılığı budur.
+
+**Soru-cevap kalıcı deposu — Cloudflare KV (bağlı):**
+
+- AI asistanının soru-cevaplarını kalıcı saklamak için **Cloudflare KV**
+  bağlıdır: `wrangler.jsonc` → `kv_namespaces` içinde `QA_KV` binding'i
+  (namespace id `9babadc3d9354e578e69e2121a9b9461`). Ek secret/hesap
+  gerekmez, deploy'da otomatik gelir.
+- `lib/store.js` önce `QA_KV` binding'ini kullanır; yoksa Upstash/Vercel KV
+  REST (`KV_REST_API_*`), o da yoksa süreç-içi belleğe düşer. Yani Upstash
+  isteğe bağlıdır — Cloudflare KV bağlı olduğu için gerekmez.
+- Yeni bir hesaba taşırken KV namespace yeniden oluşturulur
+  (`npx wrangler kv namespace create QA_KV`) ve çıkan id `wrangler.jsonc`'a
+  yazılır.
 
 **File Search Store (Gemini doküman Soru-Cevap):**
 

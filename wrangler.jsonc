@@ -11,6 +11,11 @@
   "observability": {
     "enabled": true
   },
+  // Soru-cevap kalıcı deposu (AI asistanı). lib/store.js önce bu binding'i kullanır;
+  // yoksa Upstash/Vercel KV REST'e, o da yoksa süreç-içi belleğe düşer.
+  "kv_namespaces": [
+    { "binding": "QA_KV", "id": "9babadc3d9354e578e69e2121a9b9461" }
+  ],
   "vars": {
     "NEXT_PUBLIC_SITE_URL": "https://klimasun.mioe-tr.workers.dev",
     // File Search Store adı gizli değildir (erişim için GEMINI_API_KEY gerekir),
