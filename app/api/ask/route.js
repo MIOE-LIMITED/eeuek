@@ -39,11 +39,10 @@ export async function POST(req) {
     await saveQA(slug, record);
     return NextResponse.json({ slug, ...record });
   } catch (err) {
+    // Ham hata yalnızca sunucu kaydına yazılır; kullanıcıya sade mesaj döner.
     console.error('ask error:', err);
     const { status, message } = friendlyError(err);
-    // GEÇİCİ TEŞHİS: gerçek hata metnini de ekrana ver (sorun bulununca kaldırılacak).
-    const detail = (err?.message || String(err) || '').replace(/\s+/g, ' ').slice(0, 400);
-    return NextResponse.json({ error: `${message}\n\n[TEŞHİS] ${detail}` }, { status });
+    return NextResponse.json({ error: message }, { status });
   }
 }
 

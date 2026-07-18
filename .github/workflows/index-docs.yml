@@ -65,9 +65,17 @@ jobs:
       - name: Belgeleri indeksle
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_FILE_SEARCH_STORE: ${{ github.event.inputs.reuse_store }}
+          REUSE_INPUT: ${{ github.event.inputs.reuse_store }}
         run: |
           set -o pipefail
+          # Store hedefi: workflow_dispatch input'u öncelikli; yoksa wrangler.jsonc'taki
+          # mevcut store (böylece push tetiklemesi var olan store'a ekler, yenisini açmaz).
+          STORE_TARGET="$REUSE_INPUT"
+          if [ -z "$STORE_TARGET" ]; then
+            STORE_TARGET=$(grep -oE 'fileSearchStores/[A-Za-z0-9_-]+' wrangler.jsonc | head -1 || true)
+          fi
+          export GEMINI_FILE_SEARCH_STORE="$STORE_TARGET"
+          echo "Hedef store: ${STORE_TARGET:-<yeni oluşturulacak>}"
           node scripts/setup-store.mjs | tee store-output.txt
           STORE=$(grep '^GEMINI_FILE_SEARCH_STORE=' store-output.txt | tail -1 | cut -d= -f2-)
           {

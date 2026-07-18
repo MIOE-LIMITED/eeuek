@@ -49,6 +49,23 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/** Var olan store'daki dokümanların displayName kümesini döndürür (idempotent yükleme için). */
+async function existingDisplayNames(ai, storeName) {
+  const names = new Set();
+  try {
+    const pager = await ai.fileSearchStores.documents.list({
+      parent: storeName,
+      config: { pageSize: 100 },
+    });
+    for await (const doc of pager) {
+      if (doc?.displayName) names.add(doc.displayName);
+    }
+  } catch (err) {
+    console.warn('! Var olan dokümanlar listelenemedi, tümü yeniden yüklenecek:', err?.message || err);
+  }
+  return names;
+}
+
 async function main() {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
@@ -86,9 +103,21 @@ async function main() {
     console.log(`→ ${files.length} doküman bulundu (${DOC_DIRS.join(', ')}).`);
   }
 
+  // Var olan store'a ekleme yapılıyorsa, zaten yüklü dokümanları atla (kopya olmasın).
+  let already = new Set();
+  if (existing) {
+    already = await existingDisplayNames(ai, storeName);
+    if (already.size) console.log(`→ Store'da zaten ${already.size} doküman var; bunlar atlanacak.`);
+  }
+
   let okCount = 0;
   let failCount = 0;
+  let skipCount = 0;
   for (const { full, rel } of files) {
+    if (already.has(rel)) {
+      skipCount++;
+      continue;
+    }
     process.stdout.write(`→ Yükleniyor: ${rel} `);
     try {
       let operation = await ai.fileSearchStores.uploadToFileSearchStore({
@@ -116,7 +145,11 @@ async function main() {
   }
 
   console.log('\n========================================================');
-  console.log(`BİTTİ. ${okCount} doküman indekslendi${failCount ? `, ${failCount} başarısız` : ''}.`);
+  console.log(
+    `BİTTİ. ${okCount} doküman indekslendi` +
+      `${skipCount ? `, ${skipCount} zaten mevcut (atlandı)` : ''}` +
+      `${failCount ? `, ${failCount} başarısız` : ''}.`,
+  );
   console.log('Aşağıdaki değeri GEMINI_FILE_SEARCH_STORE olarak kaydedin');
   console.log('(GitHub repo secret + gerekiyorsa Cloudflare Worker secret):\n');
   console.log(`GEMINI_FILE_SEARCH_STORE=${storeName}`);
