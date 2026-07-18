@@ -127,6 +127,21 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="ks-ai">
+        <div className="ks-wrap">
+          <div className="ks-ai-text">
+            <div className="ks-ai-kicker">YAPAY ZEKÂ ASİSTANI · ÜCRETSİZ</div>
+            <h2>Teknik sorunuzu asistana sorun</h2>
+            <p>
+              F-Gaz, chiller, pano kliması, evaporatif soğutma… 65 teknik katalogdan{' '}
+              <b>kaynak göstererek</b>, Türkçe ve üyeliksiz yanıt. Örn. “Rittal TopTherm chiller
+              nedir?”
+            </p>
+          </div>
+          <Link href="/asistan" className="ks-ai-cta">ASİSTANA SOR →</Link>
+        </div>
+      </section>
+
       <section id="cozumler" className="ks-section soft">
         <div className="ks-wrap">
           <h2 className="ks-h2">DOĞRU ÇÖZÜMÜ BULUN</h2>

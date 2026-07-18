@@ -1253,3 +1253,54 @@
   color: var(--muted);
   margin-right: 4px;
 }
+
+/* ==========================================================================
+   Ana sayfa — Yapay zekâ asistanı CTA bandı
+   ========================================================================== */
+.ks-ai {
+  background: var(--amber);
+  color: var(--navy);
+}
+.ks-ai .ks-wrap {
+  padding-top: 40px;
+  padding-bottom: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+.ks-ai-text { flex: 1; min-width: 280px; }
+.ks-ai-kicker {
+  font: 700 12px var(--font);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(15, 27, 45, 0.65);
+  margin-bottom: 8px;
+}
+.ks-ai h2 {
+  font: 700 clamp(24px, 4.5vw, 32px) var(--cond);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+}
+.ks-ai p {
+  margin: 0;
+  max-width: 640px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(15, 27, 45, 0.85);
+}
+.ks-ai-cta {
+  background: var(--navy);
+  color: #fff;
+  font: 600 15px var(--font);
+  letter-spacing: 0.06em;
+  padding: 16px 32px;
+  white-space: nowrap;
+  flex: none;
+}
+.ks-ai-cta:hover { background: #1d3252; color: #fff; }
+@media (max-width: 640px) {
+  .ks-ai-cta { width: 100%; text-align: center; }
+}
