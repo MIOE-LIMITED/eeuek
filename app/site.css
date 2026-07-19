@@ -39,8 +39,13 @@
   line-height: 1.5;
   overflow-x: clip;
 }
-.ks-site a {
-  color: var(--ink-strong);
+/* :where(a) özgüllüğü 0'dır; böylece taban link kuralı, bileşenlerin kendi
+   renk sınıflarını (beyaz/amber/lacivert) EZMEZ. Sabit yüksek özgüllüklü
+   ".ks-site a { color: lacivert }" koyu zeminli link/butonların metnini
+   görünmez yapıyordu (ör. ana sayfadaki "ASİSTANA SOR" ve kategori kutucukları).
+   Renk miras alınır: koyu bölümde beyaz, açık bölümde koyu. */
+.ks-site :where(a) {
+  color: inherit;
   text-decoration: none;
 }
 .ks-wrap {
@@ -1291,7 +1296,9 @@
   line-height: 1.6;
   color: rgba(15, 27, 45, 0.85);
 }
-.ks-ai-cta {
+/* .ks-site a (lacivert) özgüllüğünü aşmak için .ks-ai ile nitelendirildi;
+   aksi halde buton metni lacivert kalıp lacivert zeminde kayboluyordu. */
+.ks-ai .ks-ai-cta {
   background: var(--navy);
   color: #fff;
   font: 600 15px var(--font);
@@ -1300,7 +1307,7 @@
   white-space: nowrap;
   flex: none;
 }
-.ks-ai-cta:hover { background: #1d3252; color: #fff; }
+.ks-ai .ks-ai-cta:hover { background: #1d3252; color: #fff; }
 @media (max-width: 640px) {
   .ks-ai-cta { width: 100%; text-align: center; }
 }
