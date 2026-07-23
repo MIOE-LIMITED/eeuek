@@ -25,7 +25,7 @@ on:
   # elle çalıştırabilmek için: commit mesajına [index-docs] yazıp push edin.
   push:
     branches:
-      - feat/klimasun-industrial-redesign
+      - main
 
 concurrency:
   group: gemini-index-docs

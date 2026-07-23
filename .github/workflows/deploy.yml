@@ -15,8 +15,7 @@ name: Cloudflare Workers Deploy
 on:
   push:
     branches:
-      - claude/klimasun-hvac-app-tnh82c
-      - feat/klimasun-industrial-redesign
+      - main
   workflow_dispatch:
 
 concurrency:
