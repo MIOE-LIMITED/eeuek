@@ -10,7 +10,8 @@
  *  2. Eski düz dosyayı yeni adrese işaret eden 301 stub'ına (meta refresh + canonical) çevirir.
  *  3. urun/ dışındaki tüm HTML'lerde (kök, kategori/, marka/, blog/) ürün linklerini günceller.
  *  4. sitemap.xml'i yeni URL'lerle yeniler.
- *  5. Apache için .htaccess 301 haritası ve platformdan bağımsız redirect-map-urun.csv üretir.
+ *  5. Cloudflare Worker için yönlendirme haritası (cloudflare/urun-redirect-worker/src/redirects.json)
+ *     ve platformdan bağımsız redirect-map-urun.csv üretir.
  *
  * Tekrar çalıştırılabilir: stub'a çevrilmiş dosyalar (<!--ks-redirect--> işaretli) atlanır.
  */
@@ -149,17 +150,17 @@ sm = sm.replace(/(<url><loc>https:\/\/klimasun\.com\/)urun\/([a-z0-9-]+)\.html(<
   (m, pre, s, locEnd, lm) => newRel(s) ? pre + newRel(s) + locEnd + (lm ? `<lastmod>${TODAY}</lastmod>` : '') : m);
 fs.writeFileSync(smFile, sm);
 
-// ---------- 5) .htaccess + redirect-map CSV ----------
-const lines = [], csv = ['eski_url,yeni_url'];
+// ---------- 5) Cloudflare Worker haritası + redirect-map CSV ----------
+const workerMap = {}, csv = ['eski_url,yeni_url'];
 for (const p of products) {
   const info = map.get(p.s);
   if (!info) continue;
-  lines.push(`Redirect 301 /urun/${p.s}.html /${info.rel}`);
+  workerMap[p.s] = `${info.parent}/${info.child}`;
   csv.push(`${HOST}/urun/${p.s}.html,${HOST}/${info.rel}`);
 }
-fs.writeFileSync(path.join(SITE, '.htaccess'),
-  `# Eski düz ürün URL'leri -> kategorili SEO uyumlu URL'ler (otomatik üretildi: scripts/seo-product-urls.mjs)\n` +
-  lines.join('\n') + '\n');
+const workerSrc = path.join(HERE, '..', 'cloudflare', 'urun-redirect-worker', 'src');
+fs.mkdirSync(workerSrc, { recursive: true });
+fs.writeFileSync(path.join(workerSrc, 'redirects.json'), JSON.stringify(workerMap));
 fs.writeFileSync(path.join(HERE, '..', 'redirect-map-urun.csv'), csv.join('\n') + '\n');
 
 console.log(JSON.stringify(stats, null, 2));

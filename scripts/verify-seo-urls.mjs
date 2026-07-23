@@ -62,20 +62,19 @@ for (const f of walk(SITE)) {
 }
 
 // 4) HTML'lerdeki tüm yerel urun/ linkleri gerçek dosyaya çözülüyor mu
-// (products.json'da hiç olmayan ürünlere giden, dönüşümden önce de kırık olan
-//  linkler hata değil, bilgi olarak sayılır)
+// (ölü link temizliği sonrası her kırık link hatadır)
 let deadLinks = 0, urunLinks = 0;
-const preExistingDead = new Set();
 for (const f of walk(SITE)) {
   const html = fs.readFileSync(f, 'utf8');
   if (html.startsWith('<!--ks-redirect-->')) continue;
   for (const m of html.matchAll(/href="((?:\.\.\/|\/)?urun\/[^"?#]+\.html)/g)) {
     urunLinks++;
     const rel = m[1].replace(/^(\.\.\/|\/)/, '');
-    if (fs.existsSync(path.join(SITE, rel))) continue;
-    const flat = rel.match(/^urun\/([a-z0-9-]+)\.html$/);
-    if (flat && !map.has(flat[1])) { preExistingDead.add(rel); continue; }
-    deadLinks++; if (deadLinks < 10) err('kırık link: ' + f + ' -> ' + m[1]);
+    if (!fs.existsSync(path.join(SITE, rel))) { deadLinks++; if (deadLinks < 10) err('kırık link: ' + f + ' -> ' + m[1]); }
+  }
+  // mutlak URL'ler (JSON-LD ItemList vb.) de dosyaya çözülmeli
+  for (const m of html.matchAll(/https:\/\/klimasun\.com\/(urun\/[^"<\s?#]+\.html)/g)) {
+    if (!fs.existsSync(path.join(SITE, m[1]))) { deadLinks++; if (deadLinks < 10) err('kırık mutlak link: ' + f + ' -> ' + m[1]); }
   }
 }
 
@@ -91,15 +90,25 @@ for (const m of sm.matchAll(/<loc>https:\/\/klimasun\.com\/(urun\/[^<]+)<\/loc>/
 }
 if (smFlat) err(`sitemap'te ${smFlat} düz ürün URL'si kalmış`);
 
-// 6) .htaccess satır sayısı
-const ht = fs.readFileSync(path.join(SITE, '.htaccess'), 'utf8').trim().split('\n');
-const redirects = ht.filter(l => l.startsWith('Redirect 301 ')).length;
-if (redirects !== map.size) err(`.htaccess redirect sayısı ${redirects} != ${map.size}`);
+// 6) Cloudflare Worker haritaları
+const workerSrc = path.join(HERE, '..', 'cloudflare', 'urun-redirect-worker', 'src');
+const wmap = JSON.parse(fs.readFileSync(path.join(workerSrc, 'redirects.json'), 'utf8'));
+let wBad = 0;
+for (const [slug, pc] of Object.entries(wmap)) {
+  if (!fs.existsSync(path.join(SITE, 'urun', pc, slug + '.html'))) { wBad++; if (wBad < 5) err('worker hedefi yok: ' + slug); }
+}
+if (Object.keys(wmap).length !== map.size) err(`worker harita sayısı ${Object.keys(wmap).length} != ${map.size}`);
+const kmap = JSON.parse(fs.readFileSync(path.join(workerSrc, 'kategori-redirects.json'), 'utf8'));
+let kBad = 0;
+for (const slug of Object.keys(kmap)) {
+  const f = path.join(SITE, 'kategori', slug + '.html');
+  if (!fs.existsSync(f) || !fs.readFileSync(f, 'utf8').startsWith('<!--ks-redirect-->')) { kBad++; err('kategori stub değil: ' + slug); }
+}
 
 console.log(JSON.stringify({
   urun: map.size, yeniSayfaOK: checked, stubOK: stubs, ldParseOrneklem: ldChecked,
   duzLinkKalan: flatLinks, urunLinkToplam: urunLinks, kirikLink: deadLinks,
-  oncedenOluLinkHedefi: preExistingDead.size,
-  sitemapUrunLoc: smProd, htaccessRedirect: redirects, hata: errors.length
+  sitemapUrunLoc: smProd, workerUrunHarita: Object.keys(wmap).length,
+  workerKategoriHarita: Object.keys(kmap).length, hata: errors.length
 }, null, 2));
 process.exit(errors.length ? 1 : 0);
