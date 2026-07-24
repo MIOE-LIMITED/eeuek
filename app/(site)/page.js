@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import HeroSearch from '@/app/components/site/HeroSearch';
 import Placeholder from '@/app/components/site/Placeholder';
+import { caturl } from '@/lib/purl';
 
 const STATS = [
   ['9.799+', 'ÜRÜN'],
@@ -114,7 +115,7 @@ export default function HomePage() {
           </p>
           <div className="ks-grid-6">
             {CATEGORIES.map(([icon, name, count, slug]) => (
-              <Link href={`/kategori/${slug}`} className="ks-cat-tile" key={name}>
+              <Link href={caturl(slug)} className="ks-cat-tile" key={name}>
                 <span className="ks-cat-ico">{icon}</span>
                 <span className="ks-cat-name">{name}</span>
                 <span className="ks-cat-count">{count} ürün</span>

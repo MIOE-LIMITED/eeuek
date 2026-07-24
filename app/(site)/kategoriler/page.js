@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getCategoryTree } from '@/lib/catalog-server';
+import { caturl } from '@/lib/purl';
 
 const TR = 'tr-TR';
 
@@ -57,13 +58,13 @@ export default async function KategorilerPage() {
               <div className="ks-catcard-head">
                 <span className="ks-catcard-ico">{ICONS[c.slug] || '📦'}</span>
                 <div>
-                  <Link href={`/kategori/${c.slug}`} className="ks-catcard-name">{c.name}</Link>
+                  <Link href={caturl(c.slug)} className="ks-catcard-name">{c.name}</Link>
                   <div className="ks-catcard-count">{c.count.toLocaleString(TR)} ürün</div>
                 </div>
               </div>
               <div className="ks-subtags">
                 {c.children.map((s) => (
-                  <Link href={`/kategori/${s.slug}`} className="ks-subtag" key={s.slug}>
+                  <Link href={caturl(s.slug)} className="ks-subtag" key={s.slug}>
                     {s.name}
                   </Link>
                 ))}
