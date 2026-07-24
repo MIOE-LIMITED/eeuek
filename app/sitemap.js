@@ -1,5 +1,7 @@
 import { POPULAR } from '@/lib/popular';
-import PRODUCT_SLUGS from '@/lib/catalog-slugs.json';
+// "ana-kategori/alt-kategori/slug" biçiminde SEO uyumlu ürün yolları
+// (scripts/build-catalog.mjs üretir).
+import PRODUCT_PATHS from '@/lib/catalog-slugs.json';
 import CATEGORY_SLUGS from '@/lib/category-slugs.json';
 import { recentSlugs } from '@/lib/store';
 
@@ -35,9 +37,9 @@ export default async function sitemap() {
     });
   }
 
-  for (const slug of PRODUCT_SLUGS) {
+  for (const productPath of PRODUCT_PATHS) {
     entries.push({
-      url: `${SITE_URL}/urun/${slug}`,
+      url: `${SITE_URL}/urun/${productPath}`,
       lastModified: now,
       changeFrequency: 'weekly',
       priority: 0.6,

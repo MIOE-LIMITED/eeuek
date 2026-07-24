@@ -1,24 +1,33 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { findCategory } from '@/lib/catalog-server';
 import CategoryProducts from './CategoryProducts';
+// Katalogdan kalkmış (eski statik sitede kalan) kategori sayfaları -> /kategoriler
+import KATEGORI_REDIRECTS from '@/lib/kategori-redirects.json';
 
 const TR = 'tr-TR';
 
+// Eski statik site adresleri "/kategori/<slug>.html" biçimindeydi; .html'i at.
+const cleanSlug = (raw) => decodeURIComponent(raw).replace(/\.html$/, '');
+
 export async function generateMetadata({ params }) {
   const { slug } = await params;
-  const cat = await findCategory(decodeURIComponent(slug));
+  const cat = await findCategory(cleanSlug(slug));
   if (!cat) return { title: 'Kategori bulunamadı' };
   return {
     title: `${cat.name} | Klimasun`,
     description: `${cat.name} kategorisinde ${cat.count.toLocaleString(TR)} ürün — fiyat için teklif sepetine ekleyin, aynı gün dönüş yapalım.`,
+    alternates: { canonical: `/kategori/${cat.slug}` },
   };
 }
 
 export default async function KategoriPage({ params }) {
-  const { slug } = await params;
-  const cat = await findCategory(decodeURIComponent(slug));
+  const { slug: rawSlug } = await params;
+  const slug = cleanSlug(rawSlug);
+  if (KATEGORI_REDIRECTS[slug]) permanentRedirect('/kategoriler');
+  const cat = await findCategory(slug);
   if (!cat) notFound();
+  if (slug !== decodeURIComponent(rawSlug)) permanentRedirect(`/kategori/${cat.slug}`);
 
   return (
     <>

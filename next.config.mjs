@@ -4,6 +4,18 @@ import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare';
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Eski statik sitenin kök sayfa adresleri (SEO: kalıcı yönlendirme).
+  // Eski /urun/*.html ve /kategori/*.html adresleri kendi rotalarında çözülür.
+  async redirects() {
+    return [
+      { source: '/index.html', destination: '/', permanent: true },
+      { source: '/urunler.html', destination: '/urunler', permanent: true },
+      { source: '/kategoriler.html', destination: '/kategoriler', permanent: true },
+      { source: '/markalar.html', destination: '/markalar', permanent: true },
+      { source: '/iletisim.html', destination: '/iletisim', permanent: true },
+      { source: '/blog.html', destination: '/blog', permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

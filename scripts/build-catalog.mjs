@@ -33,8 +33,11 @@ const catName = new Map(catFlat.map((c) => [c.slug, c.name]));
 const gorsel = (p) => (p ? '/gorseller/' + p.replace(/^assets\/products\//, '') : '');
 const isSecondHand = (p) =>
   p.dom === '2-el-urunler' || p.pc.startsWith('2-el') || p.cats.some((c) => c.startsWith('2-el'));
+// SEO uyumlu ürün URL yolu: birincil kategori "ana--alt" -> "ana/alt"
+// (lib/purl.js bununla /urun/<ana>/<alt>/<slug> adresini kurar).
+const pcPath = (p) => (p.pc || '').replace('--', '/');
 
-// --- 1) Liste indeksi: [slug, kod, ad, marka, 2.el(0/1), stok(0/1), küçük görsel]
+// --- 1) Liste indeksi: [slug, kod, ad, marka, 2.el(0/1), stok(0/1), küçük görsel, kategoriYolu]
 const asItem = (p) => [
   p.s,
   p.c,
@@ -43,6 +46,7 @@ const asItem = (p) => [
   isSecondHand(p) ? 1 : 0,
   p.st === 'Stokta' ? 1 : 0,
   gorsel(p.th),
+  pcPath(p),
 ];
 const items = products.map(asItem);
 
@@ -84,12 +88,13 @@ for (const p of products) {
     const pick = siblings[(at + step) % siblings.length];
     const r = products[pick];
     if (r.s === p.s) break;
-    rel.push({ s: r.s, c: r.c, n: r.n, th: gorsel(r.th) });
+    rel.push({ s: r.s, c: r.c, n: r.n, th: gorsel(r.th), p: pcPath(r) });
   }
   shards[shardOf(p.s)][p.s] = {
     c: p.c,
     n: p.n,
     b: p.bn,
+    path: pcPath(p),
     img: gorsel(p.img),
     desc: p.ld || p.sd || '',
     f: p.f || {},
@@ -124,10 +129,10 @@ const tree = catTree.map((top) => {
 });
 fs.writeFileSync(path.join(veriDir, 'kategoriler.json'), JSON.stringify(tree));
 
-// --- 4) Sitemap slug listeleri
+// --- 4) Sitemap yol listeleri (ürünler: "ana-kategori/alt-kategori/slug")
 fs.writeFileSync(
   path.join(ROOT, 'lib/catalog-slugs.json'),
-  JSON.stringify(products.map((p) => p.s)),
+  JSON.stringify(products.map((p) => `${pcPath(p)}/${p.s}`)),
 );
 fs.writeFileSync(
   path.join(ROOT, 'lib/category-slugs.json'),

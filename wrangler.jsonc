@@ -17,7 +17,8 @@
     { "binding": "QA_KV", "id": "9babadc3d9354e578e69e2121a9b9461" }
   ],
   "vars": {
-    "NEXT_PUBLIC_SITE_URL": "https://klimasun.mioe-tr.workers.dev",
+    // Canonical, sitemap ve JSON-LD adresleri bu değerden üretilir.
+    "NEXT_PUBLIC_SITE_URL": "https://klimasun.com",
     // File Search Store adı gizli değildir (erişim için GEMINI_API_KEY gerekir),
     // bu yüzden normal değişken olarak tutulur. Anahtar/hesap değişince
     // index-docs iş akışını çalıştırıp buradaki adı güncelleyin.

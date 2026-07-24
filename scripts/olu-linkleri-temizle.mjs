@@ -8,8 +8,8 @@
  *    ölü kartları ve ItemList kayıtlarını ayıklar, pozisyonları/numberOfItems'ı
  *    ve "N Ürün" metinlerini düzeltir.
  *  - Katalogda hiç üyesi kalmamışsa (bayat/öksüz sayfa): sayfayı
- *    /kategoriler.html'e yönlendiren stub'a çevirir ve Cloudflare Worker
- *    haritasına (kategori-redirects.json) ekler.
+ *    /kategoriler.html'e yönlendiren stub'a çevirir ve Next.js kategori
+ *    rotasının kullandığı lib/kategori-redirects.json haritasına ekler.
  *
  * Tekrar çalıştırılabilir: stub'lar (<!--ks-redirect--> işaretli) atlanır.
  */
@@ -123,13 +123,11 @@ for (const name of fs.readdirSync(path.join(SITE, 'kategori')).filter(f => f.end
   stats.temizlenen++;
 }
 
-// Worker haritası: bayat kategori slug -> hedef yol
-const workerSrc = path.join(HERE, '..', 'cloudflare', 'urun-redirect-worker', 'src');
-fs.mkdirSync(workerSrc, { recursive: true });
-const kmapFile = path.join(workerSrc, 'kategori-redirects.json');
+// Next.js kategori rotasının yönlendirme haritası: bayat slug -> /kategoriler
+const kmapFile = path.join(HERE, '..', 'lib', 'kategori-redirects.json');
 const kmap = fs.existsSync(kmapFile) ? JSON.parse(fs.readFileSync(kmapFile, 'utf8')) : {};
-for (const s of stubbed) kmap[s] = '/kategoriler.html';
-fs.writeFileSync(kmapFile, JSON.stringify(kmap, null, 1));
+for (const s of stubbed) kmap[s] = '/kategoriler';
+fs.writeFileSync(kmapFile, JSON.stringify(kmap, null, 1) + '\n');
 
 // Canlı sayfalardan stub'lanan kategorilere link kalmış mı?
 const walk = dir => fs.readdirSync(dir, { withFileTypes: true }).flatMap(e => {

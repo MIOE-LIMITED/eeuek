@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Placeholder from '@/app/components/site/Placeholder';
 import { CONDITIONS, useQuote } from '@/app/components/site/QuoteContext';
+import { purl } from '@/lib/purl';
 
 export default function ProductDetail({ product }) {
   const p = product;
@@ -19,7 +20,12 @@ export default function ProductDetail({ product }) {
     <>
       <div className="ks-crumb-bar">
         <div className="ks-wrap">
-          <Link href="/">Ana Sayfa</Link> / <Link href="/urunler">Ürün Listesi</Link> /{' '}
+          <Link href="/">Ana Sayfa</Link> /{' '}
+          {p.parentCategory && (
+            <>
+              <Link href={p.parentCategory.href}>{p.parentCategory.name}</Link> /{' '}
+            </>
+          )}
           <Link href={p.categoryHref}>{p.category}</Link> /{' '}
           <span className="ks-crumb-cur">{p.code}</span>
         </div>
@@ -114,7 +120,7 @@ export default function ProductDetail({ product }) {
           <div className="ks-grid-4">
             {p.related.map((r) => (
               <div className="ks-prod-card" key={r.s}>
-                <Link href={`/urun/${r.s}`} style={{ display: 'block' }}>
+                <Link href={purl(r.p, r.s)} style={{ display: 'block' }}>
                   {r.th ? (
                     <img src={r.th} alt={r.n} className="ks-prod-img" loading="lazy" />
                   ) : (
@@ -123,7 +129,7 @@ export default function ProductDetail({ product }) {
                 </Link>
                 <div className="ks-related-body">
                   <div className="ks-prod-code">{r.c}</div>
-                  <Link href={`/urun/${r.s}`} className="ks-related-name">{r.n}</Link>
+                  <Link href={purl(r.p, r.s)} className="ks-related-name">{r.n}</Link>
                   <button type="button" className="ks-related-add" onClick={() => addItem(r.c, 'Sıfır')}>
                     + TEKLİFE EKLE
                   </button>
