@@ -1,7 +1,7 @@
 import { notFound, permanentRedirect } from 'next/navigation';
 import ProductDetail from './ProductDetail';
 import { getProduct, findCategory } from '@/lib/catalog-server';
-import { purl } from '@/lib/purl';
+import { purl, caturl } from '@/lib/purl';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://klimasun.vercel.app';
 
@@ -45,8 +45,8 @@ export default async function ProductPage({ params }) {
     name: p.n,
     brand: p.b,
     category: p.cat,
-    categoryHref: p.catSlug ? `/kategori/${p.catSlug}` : '/kategoriler',
-    parentCategory: parent ? { name: parent.name, href: `/kategori/${parent.slug}` } : null,
+    categoryHref: p.catSlug ? caturl(p.catSlug) : '/kategoriler',
+    parentCategory: parent ? { name: parent.name, href: caturl(parent.slug) } : null,
     badge: p.stok ? 'STOKTAN TESLİM' : 'TEMİN EDİLEBİLİR',
     stok: Boolean(p.stok),
     cond: p.cond,
@@ -58,8 +58,8 @@ export default async function ProductPage({ params }) {
 
   const crumbs = [
     { name: 'Ana Sayfa', item: `${SITE_URL}/` },
-    ...(parent ? [{ name: parent.name, item: `${SITE_URL}/kategori/${parent.slug}` }] : []),
-    ...(p.catSlug ? [{ name: p.cat, item: `${SITE_URL}/kategori/${p.catSlug}` }] : []),
+    ...(parent ? [{ name: parent.name, item: `${SITE_URL}${caturl(parent.slug)}` }] : []),
+    ...(p.catSlug ? [{ name: p.cat, item: `${SITE_URL}${caturl(p.catSlug)}` }] : []),
     { name: p.n, item: `${SITE_URL}${canonical}` },
   ];
   const ld = [
