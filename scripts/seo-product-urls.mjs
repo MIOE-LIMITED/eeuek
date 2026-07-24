@@ -10,8 +10,13 @@
  *  2. Eski düz dosyayı yeni adrese işaret eden 301 stub'ına (meta refresh + canonical) çevirir.
  *  3. urun/ dışındaki tüm HTML'lerde (kök, kategori/, marka/, blog/) ürün linklerini günceller.
  *  4. sitemap.xml'i yeni URL'lerle yeniler.
- *  5. Cloudflare Worker için yönlendirme haritası (cloudflare/urun-redirect-worker/src/redirects.json)
- *     ve platformdan bağımsız redirect-map-urun.csv üretir.
+ *  5. Platformdan bağımsız redirect-map-urun.csv üretir (eski statik URL -> canlı
+ *     Next.js kanonik adresi). Canlı sitede yönlendirmeyi app/(site)/urun/[...path]
+ *     rotası çalışma anında yapar; bu CSV yalnızca dış içe aktarımlar içindir.
+ *
+ * Not: klimasun-2026/ statik kopyası artık canlı sitede servis edilmez (site,
+ * OpenNext ile Cloudflare Workers'ta çalışan Next.js uygulamasıdır); bu script
+ * yalnızca statik kopya bir yerde yayınlanırsa diye bakımlı tutulur.
  *
  * Tekrar çalıştırılabilir: stub'a çevrilmiş dosyalar (<!--ks-redirect--> işaretli) atlanır.
  */
@@ -150,17 +155,13 @@ sm = sm.replace(/(<url><loc>https:\/\/klimasun\.com\/)urun\/([a-z0-9-]+)\.html(<
   (m, pre, s, locEnd, lm) => newRel(s) ? pre + newRel(s) + locEnd + (lm ? `<lastmod>${TODAY}</lastmod>` : '') : m);
 fs.writeFileSync(smFile, sm);
 
-// ---------- 5) Cloudflare Worker haritası + redirect-map CSV ----------
-const workerMap = {}, csv = ['eski_url,yeni_url'];
+// ---------- 5) redirect-map CSV (eski statik URL -> canlı kanonik adres) ----------
+const csv = ['eski_url,yeni_url'];
 for (const p of products) {
   const info = map.get(p.s);
   if (!info) continue;
-  workerMap[p.s] = `${info.parent}/${info.child}`;
-  csv.push(`${HOST}/urun/${p.s}.html,${HOST}/${info.rel}`);
+  csv.push(`${HOST}/urun/${p.s}.html,${HOST}/urun/${info.parent}/${info.child}/${p.s}`);
 }
-const workerSrc = path.join(HERE, '..', 'cloudflare', 'urun-redirect-worker', 'src');
-fs.mkdirSync(workerSrc, { recursive: true });
-fs.writeFileSync(path.join(workerSrc, 'redirects.json'), JSON.stringify(workerMap));
 fs.writeFileSync(path.join(HERE, '..', 'redirect-map-urun.csv'), csv.join('\n') + '\n');
 
 console.log(JSON.stringify(stats, null, 2));

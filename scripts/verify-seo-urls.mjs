@@ -90,25 +90,16 @@ for (const m of sm.matchAll(/<loc>https:\/\/klimasun\.com\/(urun\/[^<]+)<\/loc>/
 }
 if (smFlat) err(`sitemap'te ${smFlat} düz ürün URL'si kalmış`);
 
-// 6) Cloudflare Worker haritaları
-const workerSrc = path.join(HERE, '..', 'cloudflare', 'urun-redirect-worker', 'src');
-const wmap = JSON.parse(fs.readFileSync(path.join(workerSrc, 'redirects.json'), 'utf8'));
-let wBad = 0;
-for (const [slug, pc] of Object.entries(wmap)) {
-  if (!fs.existsSync(path.join(SITE, 'urun', pc, slug + '.html'))) { wBad++; if (wBad < 5) err('worker hedefi yok: ' + slug); }
-}
-if (Object.keys(wmap).length !== map.size) err(`worker harita sayısı ${Object.keys(wmap).length} != ${map.size}`);
-const kmap = JSON.parse(fs.readFileSync(path.join(workerSrc, 'kategori-redirects.json'), 'utf8'));
-let kBad = 0;
+// 6) Next.js kategori yönlendirme haritası: her kayıt statik kopyada stub olmalı
+const kmap = JSON.parse(fs.readFileSync(path.join(HERE, '..', 'lib', 'kategori-redirects.json'), 'utf8'));
 for (const slug of Object.keys(kmap)) {
   const f = path.join(SITE, 'kategori', slug + '.html');
-  if (!fs.existsSync(f) || !fs.readFileSync(f, 'utf8').startsWith('<!--ks-redirect-->')) { kBad++; err('kategori stub değil: ' + slug); }
+  if (!fs.existsSync(f) || !fs.readFileSync(f, 'utf8').startsWith('<!--ks-redirect-->')) err('kategori stub değil: ' + slug);
 }
 
 console.log(JSON.stringify({
   urun: map.size, yeniSayfaOK: checked, stubOK: stubs, ldParseOrneklem: ldChecked,
   duzLinkKalan: flatLinks, urunLinkToplam: urunLinks, kirikLink: deadLinks,
-  sitemapUrunLoc: smProd, workerUrunHarita: Object.keys(wmap).length,
-  workerKategoriHarita: Object.keys(kmap).length, hata: errors.length
+  sitemapUrunLoc: smProd, kategoriYonlendirme: Object.keys(kmap).length, hata: errors.length
 }, null, 2));
 process.exit(errors.length ? 1 : 0);

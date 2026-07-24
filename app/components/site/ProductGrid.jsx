@@ -4,11 +4,12 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Placeholder from './Placeholder';
 import { useQuote } from './QuoteContext';
+import { purl } from '@/lib/purl';
 
 const PAGE_SIZE = 24;
 const TR = 'tr-TR';
 
-// items satırı: [slug, kod, ad, marka, 2.el(0/1), stok(0/1), küçük görsel]
+// items satırı: [slug, kod, ad, marka, 2.el(0/1), stok(0/1), küçük görsel, kategoriYolu]
 export default function ProductGrid({ items }) {
   const { addItem } = useQuote();
   const [page, setPage] = useState(1);
@@ -34,9 +35,9 @@ export default function ProductGrid({ items }) {
   return (
     <>
       <div className="ks-prod-grid">
-        {visible.map(([slug, code, name, brand, , stok, th]) => (
+        {visible.map(([slug, code, name, brand, , stok, th, path]) => (
           <div className="ks-prod-card" key={slug}>
-            <Link href={`/urun/${slug}`} style={{ display: 'block' }}>
+            <Link href={purl(path, slug)} style={{ display: 'block' }}>
               {th ? (
                 <img src={th} alt={name} className="ks-prod-img" loading="lazy" />
               ) : (
@@ -45,7 +46,7 @@ export default function ProductGrid({ items }) {
             </Link>
             <div className="ks-prod-body">
               <div className="ks-prod-code">{code}</div>
-              <Link href={`/urun/${slug}`} className="ks-prod-name">
+              <Link href={purl(path, slug)} className="ks-prod-name">
                 {name}
               </Link>
               <div className="ks-prod-meta">
@@ -58,7 +59,7 @@ export default function ProductGrid({ items }) {
                 <button type="button" className="ks-prod-add" onClick={() => addItem(code, 'Sıfır')}>
                   + TEKLİFE EKLE
                 </button>
-                <Link href={`/urun/${slug}`} className="ks-prod-view">
+                <Link href={purl(path, slug)} className="ks-prod-view">
                   İNCELE
                 </Link>
               </div>
