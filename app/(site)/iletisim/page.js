@@ -7,8 +7,8 @@ import Placeholder from '@/app/components/site/Placeholder';
 const TOPICS = ['Teklif', 'Servis', 'Cihaz Satışı', 'Diğer'];
 
 const CARDS = [
-  { cls: '', ico: '☎', lbl: 'TELEFON', val: '0216 344 48 19', sub: 'Hafta içi 08:30 – 18:00' },
-  { cls: 'wa', ico: '✆', lbl: 'WHATSAPP', val: '0532 424 6219', sub: 'Genellikle dakikalar içinde yanıt' },
+  { cls: '', ico: '☎', lbl: 'TELEFON', val: '0505 959 87 70', sub: 'Hafta içi 08:30 – 18:00' },
+  { cls: 'wa', ico: '✆', lbl: 'WHATSAPP', val: '0505 959 87 70', sub: 'Genellikle dakikalar içinde yanıt' },
   { cls: '', ico: '✉', lbl: 'E-POSTA', val: 'info@klimasun.com.tr', sub: 'Teklif ve toplu liste için' },
   { cls: '', ico: '📍', lbl: 'ADRES', val: 'İstanbul, Türkiye', sub: 'Türkiye geneli tedarik & servis' },
 ];

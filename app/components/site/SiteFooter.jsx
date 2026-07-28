@@ -22,7 +22,7 @@ export default function SiteFooter() {
             <Image src="/logo.png" alt="Klimasun" height={36} width={92} />
           </div>
           <div className="ks-footer-info">
-            <div className="ks-u-strong">☎ 0216 344 48 19 · WhatsApp 0532 424 6219</div>
+            <div className="ks-u-strong">☎ 0505 959 87 70 · WhatsApp 0505 959 87 70</div>
             <div>✉ info@klimasun.com.tr</div>
             <div style={{ marginTop: 10 }}>
               Klimasun Endüstriyel İklimlendirme, İstanbul — Türkiye geneli tedarik &amp; servis

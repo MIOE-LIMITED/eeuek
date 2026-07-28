@@ -82,12 +82,12 @@ export default function ProductDetail({ product }) {
               </button>
             </div>
             <a
-              href="https://wa.me/905324246219"
+              href="https://wa.me/905059598770"
               className="ks-buy-wa"
               target="_blank"
               rel="noreferrer"
             >
-              ✆ WhatsApp&apos;tan Sor — 0532 424 6219
+              ✆ WhatsApp&apos;tan Sor — 0505 959 87 70
             </a>
             <div className="ks-buy-note">
               Satışlarımız kurumsaldır; fiyat teklifle iletilir. Stoktan teslim — aynı iş günü kargoya
