@@ -686,6 +686,31 @@
 .ks-stock-filter { display: flex; align-items: center; gap: 9px; cursor: pointer; font-size: 14px; color: var(--muted-3); }
 .ks-stock-filter input { accent-color: var(--amber); width: 16px; height: 16px; }
 .ks-stock-filter .cnt { color: var(--muted-2); font-size: 12.5px; }
+
+/* Fiyat & indirim gösterimi (stoklu, Zoho fiyatlı ürünlerde) */
+.ks-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin: 6px 0 2px; }
+.ks-price-old { color: var(--muted-2); text-decoration: line-through; font-size: 13px; }
+.ks-price-new { color: #0f8a3c; font-weight: 800; font-size: 18px; letter-spacing: -0.2px; }
+.ks-price-off {
+  background: #e7f7ec; color: #0b7a34; font-weight: 700; font-size: 11px;
+  padding: 2px 7px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.3px;
+}
+/* Kart görseli üzerindeki indirim şeridi */
+.ks-disc-ribbon {
+  position: absolute; top: 10px; left: 10px; z-index: 2;
+  background: #0f8a3c; color: #fff; font-size: 11px; font-weight: 800;
+  padding: 4px 9px; border-radius: 6px; letter-spacing: 0.4px;
+  box-shadow: 0 2px 6px rgba(15, 138, 60, 0.35);
+}
+/* Ürün detayında fiyat kutusu */
+.ks-buy-price {
+  margin: 4px 0 14px; padding: 14px 16px; border: 1px solid #cfefd8;
+  background: #f2fbf5; border-radius: 12px;
+}
+.ks-buy-price-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px; }
+.ks-buy-price-new { color: #0f8a3c; font-weight: 800; font-size: 28px; letter-spacing: -0.5px; }
+.ks-buy-price .ks-price-old { font-size: 16px; }
+.ks-buy-price-note { color: var(--muted-2); font-size: 12.5px; margin-top: 6px; }
 .ks-cat-links { display: flex; flex-direction: column; gap: 9px; font-size: 14px; }
 .ks-cat-links a { color: var(--muted-3); }
 .ks-cat-links a:hover { color: var(--amber-ink); }

@@ -37,7 +37,9 @@ const isSecondHand = (p) =>
 // (lib/purl.js bununla /urun/<ana>/<alt>/<slug> adresini kurar).
 const pcPath = (p) => (p.pc || '').replace('--', '/');
 
-// --- 1) Liste indeksi: [slug, kod, ad, marka, 2.el(0/1), stok(0/1), küçük görsel, kategoriYolu]
+// --- 1) Liste indeksi: [slug, kod, ad, marka, 2.el(0/1), stok(0/1), küçük görsel, kategoriYolu, fiyat]
+// fiyat: [satış, liste] (EUR) — yalnızca Zoho fiyatı olan stoklu üründe; yoksa 0.
+// Not: Zoho'nun teklif/fatura/alış/son-hareket bilgileri hiçbir yere yazılmaz; sadece fiyat.
 const asItem = (p) => [
   p.s,
   p.c,
@@ -47,6 +49,7 @@ const asItem = (p) => [
   p.st === 'Stokta' ? 1 : 0,
   gorsel(p.th),
   pcPath(p),
+  p.prc ? [p.prc.sale, p.prc.list] : 0,
 ];
 const items = products.map(asItem);
 
@@ -118,6 +121,7 @@ for (const p of products) {
     catSlug: catName.has(p.pc) ? p.pc : catName.has(p.cats[0]) ? p.cats[0] : '',
     cond: isSecondHand(p) ? '2.El' : 'Sıfır',
     stok: p.st === 'Stokta' ? 1 : 0,
+    prc: p.prc || null,
     rel,
   };
 }

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Placeholder from '@/app/components/site/Placeholder';
 import { CONDITIONS, useQuote } from '@/app/components/site/QuoteContext';
 import { purl } from '@/lib/purl';
+import { money, discountPct } from '@/lib/price';
 
 export default function ProductDetail({ product }) {
   const p = product;
@@ -52,6 +53,28 @@ export default function ProductDetail({ product }) {
             <div>Durum: <b>{p.cond}</b></div>
           </div>
           {p.description ? <p className="ks-buy-desc">{p.description}</p> : null}
+
+          {p.price ? (
+            <div className="ks-buy-price">
+              {(() => {
+                const off = discountPct(p.price.list, p.price.sale);
+                return (
+                  <>
+                    <div className="ks-buy-price-row">
+                      {p.price.list && off ? (
+                        <span className="ks-price-old">{money(p.price.list, p.price.cur)}</span>
+                      ) : null}
+                      <span className="ks-buy-price-new">{money(p.price.sale, p.price.cur)}</span>
+                      {off ? <span className="ks-price-off">%{off} indirim</span> : null}
+                    </div>
+                    <div className="ks-buy-price-note">
+                      Stoktan teslim — indirimli fiyat. KDV hariçtir; teklifle onaylanır.
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          ) : null}
 
           <div className="ks-buy-box">
             <div className="ks-buy-condrow">
