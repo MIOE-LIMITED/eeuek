@@ -2,12 +2,10 @@ import Link from 'next/link';
 import { getBrands } from '@/lib/catalog-server';
 import BrandsBrowser from '@/app/components/site/BrandsBrowser';
 
-const TR = 'tr-TR';
-
 export const metadata = {
   title: 'Markalar',
   description:
-    'Rittal, Danfoss, Cosmotec, FORM, Sanhua ve daha fazlası — 226 üretici markasında orijinal ürün ve yedek parça.',
+    'Çözüm ortağı markalarımız — RITTAL, Cosmotec, FORM, Carrier. Listede olmayan tüm markaların orijinal ürün ve yedek parçalarını da tedarik ediyoruz.',
 };
 
 export default async function MarkalarPage() {
@@ -22,9 +20,9 @@ export default async function MarkalarPage() {
           </div>
           <h1>Markalar</h1>
           <p>
-            {brands.length.toLocaleString(TR)} üretici markasıyla çalışıyoruz. Kendi stoğumuz ve
-            Avrupa&apos;daki uzman tedarikçi ağımızla, tek noktadan orijinal parça tedariği
-            sağlıyoruz.
+            Öne çıkan çözüm ortağı markalarımız. Kendi stoğumuz ve Avrupa&apos;daki uzman tedarikçi
+            ağımızla, listede olmayan tüm markaların da orijinal ürün ve yedek parçalarını tek
+            noktadan tedarik ediyoruz — parça kodunuzu iletmeniz yeterli.
           </p>
         </div>
       </div>
