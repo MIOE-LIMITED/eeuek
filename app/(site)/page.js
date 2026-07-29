@@ -2,21 +2,13 @@ import Link from 'next/link';
 import HeroSearch from '@/app/components/site/HeroSearch';
 import Placeholder from '@/app/components/site/Placeholder';
 import { caturl } from '@/lib/purl';
+import { getBrands } from '@/lib/catalog-server';
 
 const STATS = [
   ['9.799+', 'ÜRÜN'],
   ['226', 'MARKA'],
   ['20+ YIL', 'DENEYİM'],
   ['7/24', 'TEKLİF'],
-];
-
-const BRANDS = [
-  ['RITTAL', '3631'],
-  ['Danfoss', '1401'],
-  ['nVent HOFFMAN', '987'],
-  ['Cosmotec', '386'],
-  ['FORM', '352'],
-  ['Sanhua', '248'],
 ];
 
 const CATEGORIES = [
@@ -47,7 +39,11 @@ const RESOURCES = [
   ['Teknik Dokümanlar', 'DOKÜMANLARA GİT', 'doküman kapağı'],
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Ana sayfadaki markalar, markalar sayfasıyla aynı onaylı listeden (markalar.json)
+  // gelir; canlı ürün sayılarıyla. Onaylı olmayan markalar ana sayfada gösterilmez.
+  const brands = await getBrands();
+
   return (
     <>
       <section className="ks-hero">
@@ -89,10 +85,10 @@ export default function HomePage() {
             listelerine gerek kalmadan size zaman ve maliyet kazandırıyoruz.
           </p>
           <div className="ks-grid-3">
-            {BRANDS.map(([name, count]) => (
+            {brands.map(([name, count]) => (
               <div className="ks-brand-card" key={name}>
                 <div className="ks-brand-name">{name}</div>
-                <div className="ks-brand-count">{count} ürün</div>
+                <div className="ks-brand-count">{count.toLocaleString('tr-TR')} ürün</div>
                 <Link href={`/urunler?marka=${encodeURIComponent(name)}`} className="ks-brand-link">
                   TÜM ÜRÜNLERİ GÖR <span className="ks-arw">→</span>
                 </Link>
