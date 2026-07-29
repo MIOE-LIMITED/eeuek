@@ -60,6 +60,22 @@ const brandList = [...brandCount.entries()].sort(
   (a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'tr'),
 );
 
+// Markalar sayfasında yalnızca onaylı (anlaşmalı) markalar gösterilir; telif/marka
+// riskini önlemek için geri kalanlar sayfada listelenmez. Ürünler etkilenmez —
+// katalog.json ve ürün araması gerçek marka etiketini (bn) korur, bu yüzden tüm
+// ürünler ürün listesinde ve AI aramasında çıkmaya devam eder.
+// Liste boşsa (veya dosya yoksa) tüm markalar gösterilir (güvenli varsayılan).
+let visibleBrands = brandList;
+try {
+  const allow = readJson(path.join(ROOT, 'lib/visible-brands.json'));
+  if (Array.isArray(allow) && allow.length) {
+    const allowSet = new Set(allow);
+    visibleBrands = brandList.filter(([bn]) => allowSet.has(bn));
+  }
+} catch {
+  // lib/visible-brands.json yoksa: tüm markaları göster.
+}
+
 const katalog = {
   count: products.length,
   brands: brandList,
@@ -69,8 +85,8 @@ const katalog = {
 const veriDir = path.join(ROOT, 'public/veri');
 fs.mkdirSync(path.join(veriDir, 'detay'), { recursive: true });
 fs.writeFileSync(path.join(veriDir, 'katalog.json'), JSON.stringify(katalog));
-// Markalar sayfası için küçük, sunucuda okunabilen liste.
-fs.writeFileSync(path.join(veriDir, 'markalar.json'), JSON.stringify(brandList));
+// Markalar sayfası için küçük, sunucuda okunabilen liste (yalnızca onaylı markalar).
+fs.writeFileSync(path.join(veriDir, 'markalar.json'), JSON.stringify(visibleBrands));
 
 // --- 2) Detay parçaları (aynı ana kategorideki komşular "benzer ürünler" olur)
 const byPc = new Map();
