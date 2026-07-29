@@ -4,8 +4,13 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import ProductGrid from './ProductGrid';
 import { useQuote } from './QuoteContext';
+import VISIBLE_BRANDS from '@/lib/visible-brands.json';
 
 const TR = 'tr-TR';
+// Marka filtresinde yalnızca onaylı markalar gösterilir (markalar sayfasıyla aynı
+// beyaz liste). Liste boşsa tüm markalar gösterilir. Ürünler filtrelenmez —
+// gizli markaların ürünleri listede ve aramada çıkmaya devam eder.
+const VISIBLE_BRAND_SET = new Set(VISIBLE_BRANDS);
 
 // Ortak katalog tarayıcı: durum + marka filtreleri, arama, sayaç, ürün ızgarası.
 // Hem /urunler (tüm katalog) hem /kategori/[slug] (kategori ürünleri) kullanır.
@@ -41,9 +46,14 @@ export default function CatalogBrowser({ items, loading = false, initialQuery = 
   );
 
   const brandCounts = useMemo(() => {
+    const onlyVisible = VISIBLE_BRAND_SET.size > 0;
     const m = new Map();
-    for (const it of afterCond) m.set(it[3], (m.get(it[3]) || 0) + 1);
-    // Seçili ama artık 0 sonuçlu markalar listede kalsın ki seçim kaldırılabilsin.
+    for (const it of afterCond) {
+      const b = it[3];
+      if (onlyVisible && !VISIBLE_BRAND_SET.has(b)) continue; // onaylı olmayan markalar filtrede gösterilmez
+      m.set(b, (m.get(b) || 0) + 1);
+    }
+    // Seçili ama artık 0 sonuçlu (veya onaylı olmayan) markalar listede kalsın ki seçim kaldırılabilsin.
     for (const [b, sel] of Object.entries(brands)) if (sel && !m.has(b)) m.set(b, 0);
     return [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], TR));
   }, [afterCond, brands]);
