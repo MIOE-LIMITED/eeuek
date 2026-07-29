@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Placeholder from './Placeholder';
 import { useQuote } from './QuoteContext';
 import { purl } from '@/lib/purl';
+import { money, discountPct } from '@/lib/price';
 
 const PAGE_SIZE = 24;
 const TR = 'tr-TR';
@@ -35,9 +36,14 @@ export default function ProductGrid({ items }) {
   return (
     <>
       <div className="ks-prod-grid">
-        {visible.map(([slug, code, name, brand, , stok, th, path]) => (
+        {visible.map(([slug, code, name, brand, , stok, th, path, price]) => {
+          const sale = Array.isArray(price) ? price[0] : 0;
+          const list = Array.isArray(price) ? price[1] : 0;
+          const off = discountPct(list, sale);
+          return (
           <div className="ks-prod-card" key={slug}>
-            <Link href={purl(path, slug)} style={{ display: 'block' }}>
+            <Link href={purl(path, slug)} style={{ display: 'block', position: 'relative' }}>
+              {sale && off ? <span className="ks-disc-ribbon">%{off} İNDİRİM</span> : null}
               {th ? (
                 <img src={th} alt={name} className="ks-prod-img" loading="lazy" />
               ) : (
@@ -55,6 +61,13 @@ export default function ProductGrid({ items }) {
                   {stok ? 'Stoktan Teslim' : 'Temin Edilebilir'}
                 </span>
               </div>
+              {sale ? (
+                <div className="ks-price">
+                  {list && off ? <span className="ks-price-old">{money(list)}</span> : null}
+                  <span className="ks-price-new">{money(sale)}</span>
+                  {off ? <span className="ks-price-off">%{off} indirim</span> : null}
+                </div>
+              ) : null}
               <div className="ks-prod-actions">
                 <button type="button" className="ks-prod-add" onClick={() => addItem(code, 'Sıfır')}>
                   + TEKLİFE EKLE
@@ -65,7 +78,8 @@ export default function ProductGrid({ items }) {
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {items.length === 0 && (

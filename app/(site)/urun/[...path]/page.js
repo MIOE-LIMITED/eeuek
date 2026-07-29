@@ -52,6 +52,7 @@ export default async function ProductPage({ params }) {
     cond: p.cond,
     description: p.desc,
     img: p.img,
+    price: p.prc || null,
     specs: Object.entries(p.f || {}),
     related: p.rel || [],
   };
@@ -74,6 +75,19 @@ export default async function ProductPage({ params }) {
       url: `${SITE_URL}${canonical}`,
       ...(p.img ? { image: [`${SITE_URL}${p.img}`] } : {}),
       ...(p.desc ? { description: p.desc } : {}),
+      ...(p.prc
+        ? {
+            offers: {
+              '@type': 'Offer',
+              price: p.prc.sale,
+              priceCurrency: p.prc.cur || 'EUR',
+              availability: p.stok
+                ? 'https://schema.org/InStock'
+                : 'https://schema.org/PreOrder',
+              url: `${SITE_URL}${canonical}`,
+            },
+          }
+        : {}),
     },
     {
       '@context': 'https://schema.org',
