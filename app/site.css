@@ -683,6 +683,9 @@
 .ks-brand-filters label { display: flex; align-items: center; gap: 9px; cursor: pointer; color: var(--muted-3); }
 .ks-brand-filters input { accent-color: var(--amber); width: 16px; height: 16px; }
 .ks-brand-filters .cnt { color: var(--muted-2); font-size: 12.5px; }
+.ks-stock-filter { display: flex; align-items: center; gap: 9px; cursor: pointer; font-size: 14px; color: var(--muted-3); }
+.ks-stock-filter input { accent-color: var(--amber); width: 16px; height: 16px; }
+.ks-stock-filter .cnt { color: var(--muted-2); font-size: 12.5px; }
 .ks-cat-links { display: flex; flex-direction: column; gap: 9px; font-size: 14px; }
 .ks-cat-links a { color: var(--muted-3); }
 .ks-cat-links a:hover { color: var(--amber-ink); }
