@@ -20,6 +20,7 @@ export default function CatalogBrowser({ items, loading = false, initialQuery = 
   const { openQuote } = useQuote();
   const [q, setQ] = useState(initialQuery);
   const [cond, setCond] = useState('Tümü');
+  const [inStockOnly, setInStockOnly] = useState(false);
   const [brands, setBrands] = useState(() => (initialBrand ? { [initialBrand]: true } : {}));
   const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -45,10 +46,19 @@ export default function CatalogBrowser({ items, loading = false, initialQuery = 
     [searched, cond],
   );
 
+  // Stok sayacı bağlamsaldır (arama + durum). it[5] === 1 -> stoktan teslim.
+  const stockCount = useMemo(() => afterCond.reduce((n, it) => n + (it[5] ? 1 : 0), 0), [afterCond]);
+
+  // "Sadece stoktakiler" seçiliyse yalnızca stoktan teslim ürünler kalır.
+  const afterStock = useMemo(
+    () => (inStockOnly ? afterCond.filter((it) => it[5]) : afterCond),
+    [afterCond, inStockOnly],
+  );
+
   const brandCounts = useMemo(() => {
     const onlyVisible = VISIBLE_BRAND_SET.size > 0;
     const m = new Map();
-    for (const it of afterCond) {
+    for (const it of afterStock) {
       const b = it[3];
       if (onlyVisible && !VISIBLE_BRAND_SET.has(b)) continue; // onaylı olmayan markalar filtrede gösterilmez
       m.set(b, (m.get(b) || 0) + 1);
@@ -56,12 +66,12 @@ export default function CatalogBrowser({ items, loading = false, initialQuery = 
     // Seçili ama artık 0 sonuçlu (veya onaylı olmayan) markalar listede kalsın ki seçim kaldırılabilsin.
     for (const [b, sel] of Object.entries(brands)) if (sel && !m.has(b)) m.set(b, 0);
     return [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], TR));
-  }, [afterCond, brands]);
+  }, [afterStock, brands]);
 
   const anyBrand = Object.values(brands).some(Boolean);
   const list = useMemo(
-    () => (anyBrand ? afterCond.filter((it) => brands[it[3]]) : afterCond),
-    [afterCond, anyBrand, brands],
+    () => (anyBrand ? afterStock.filter((it) => brands[it[3]]) : afterStock),
+    [afterStock, anyBrand, brands],
   );
 
   const toggleBrand = (label) => setBrands((s) => ({ ...s, [label]: !s[label] }));
@@ -91,6 +101,18 @@ export default function CatalogBrowser({ items, loading = false, initialQuery = 
               </button>
             ))}
           </div>
+        </div>
+
+        <div>
+          <h3 className="ks-filter-h">STOK</h3>
+          <label className="ks-stock-filter">
+            <input
+              type="checkbox"
+              checked={inStockOnly}
+              onChange={() => setInStockOnly((v) => !v)}
+            />
+            Sadece stoktakiler <span className="cnt">({stockCount.toLocaleString(TR)})</span>
+          </label>
         </div>
 
         <div>
