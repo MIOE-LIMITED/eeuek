@@ -122,6 +122,9 @@ for (const p of products) {
     cond: isSecondHand(p) ? '2.El' : 'Sıfır',
     stok: p.st === 'Stokta' ? 1 : 0,
     prc: p.prc || null,
+    rich: p.rich || null,
+    mt: p.mt || '',
+    md: p.md || '',
     rel,
   };
 }
@@ -143,9 +146,9 @@ const tree = catTree.map((top) => {
   const children = (top.children || []).map((ch) => {
     const chItems = itemsOf(ch.slug, false);
     fs.writeFileSync(path.join(katDir, `${ch.slug}.json`), JSON.stringify({ items: chItems }));
-    return { slug: ch.slug, name: ch.name, count: chItems.length };
+    return { slug: ch.slug, name: ch.name, count: chItems.length, ...(ch.intro ? { intro: ch.intro } : {}) };
   });
-  return { slug: top.slug, name: top.name, count: topItems.length, children };
+  return { slug: top.slug, name: top.name, count: topItems.length, ...(top.intro ? { intro: top.intro } : {}), children };
 });
 fs.writeFileSync(path.join(veriDir, 'kategoriler.json'), JSON.stringify(tree));
 
