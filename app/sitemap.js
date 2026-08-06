@@ -1,4 +1,5 @@
 import { POPULAR } from '@/lib/popular';
+import { POSTS } from '@/lib/blog';
 // "ana-kategori/alt-kategori/slug" biçiminde SEO uyumlu ürün yolları
 // (scripts/build-catalog.mjs üretir).
 import PRODUCT_PATHS from '@/lib/catalog-slugs.json';
@@ -43,6 +44,15 @@ export default async function sitemap() {
       url: `${SITE_URL}/urun/${productPath}`,
       lastModified: now,
       changeFrequency: 'weekly',
+      priority: 0.6,
+    });
+  }
+
+  for (const p of POSTS) {
+    entries.push({
+      url: `${SITE_URL}/blog/${p.s}`,
+      lastModified: now,
+      changeFrequency: 'monthly',
       priority: 0.6,
     });
   }

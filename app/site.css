@@ -1670,3 +1670,31 @@
   .ks-chat-input { flex-direction: column; }
   .ks-chat-input .ks-ask-btn { width: 100%; padding: 12px; }
 }
+
+/* ---- Blog yazı sayfası (makale prose + FAQ) ---- */
+.ks-post-meta { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+.ks-post-meta .d { color: var(--muted-2); font: 600 12px var(--font); letter-spacing: 0.14em; }
+.ks-article { max-width: 760px; margin: 0 auto; color: var(--ink); font-size: 16px; line-height: 1.75; }
+.ks-article h2 { font: 700 26px/1.2 var(--cond); letter-spacing: 0.01em; margin: 34px 0 12px; color: var(--ink-strong); }
+.ks-article h3 { font: 700 19px/1.3 var(--font); margin: 24px 0 8px; color: var(--ink-strong); }
+.ks-article p { margin: 0 0 16px; }
+.ks-article ul, .ks-article ol { margin: 0 0 16px; padding-left: 22px; }
+.ks-article li { margin: 6px 0; }
+.ks-article a { color: var(--amber-ink); font-weight: 600; text-decoration: none; border-bottom: 1px solid var(--line-2); }
+.ks-article a:hover { border-bottom-color: var(--amber); }
+.ks-article b { color: var(--ink-strong); }
+.ks-article table { width: 100%; border-collapse: collapse; margin: 18px 0 22px; font-size: 15px; display: block; overflow-x: auto; }
+.ks-article th, .ks-article td { border: 1px solid var(--line); padding: 10px 12px; text-align: left; vertical-align: top; }
+.ks-article thead th { background: var(--navy); color: #fff; font: 600 13px var(--font); letter-spacing: 0.04em; }
+.ks-article tbody tr:nth-child(even) { background: #f6f8fb; }
+.ks-faq { margin-top: 36px; }
+.ks-faq-item { border-top: 1px solid var(--line); padding: 16px 0; }
+.ks-faq-item h3 { margin: 0 0 6px; font: 700 17px/1.35 var(--font); color: var(--ink-strong); }
+.ks-faq-item p { margin: 0; color: var(--muted); }
+.ks-post-more { max-width: 1240px; margin: 48px auto 0; }
+.ks-post-more h2 { font: 700 22px var(--cond); letter-spacing: 0.02em; margin: 0 0 18px; color: var(--ink-strong); }
+.ks-blogcard { display: block; text-decoration: none; color: inherit; }
+/* Blog kartları artık <Link> (görselsiz metin kartı) */
+.ks-blog-feat { grid-template-columns: 1fr; text-decoration: none; color: inherit; }
+.ks-blogcard { cursor: pointer; }
+.ks-blogcard .ks-readmore, .ks-blog-feat .ks-readmore { display: inline-flex; align-items: center; gap: 6px; }
