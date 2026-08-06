@@ -1300,6 +1300,13 @@
   background: #fff;
   padding: 16px;
 }
+.ks-gallery-thumbs { display: flex; flex-wrap: wrap; gap: 8px; }
+.ks-gallery-thumb {
+  width: 68px; height: 68px; padding: 4px; background: #fff; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
+}
+.ks-gallery-thumb.is-active { border-color: var(--navy); box-shadow: 0 0 0 1px var(--navy); }
+.ks-gallery-thumb img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .ks-brand-scroll {
   max-height: 300px;
   overflow-y: auto;

@@ -52,6 +52,7 @@ export default async function ProductPage({ params }) {
     cond: p.cond,
     description: p.desc,
     img: p.img,
+    gallery: p.imgs || null,
     price: p.prc || null,
     rich: p.rich || null,
     specs: Object.entries(p.f || {}),
@@ -74,7 +75,13 @@ export default async function ProductPage({ params }) {
       brand: { '@type': 'Brand', name: p.b },
       category: p.cat,
       url: `${SITE_URL}${canonical}`,
-      ...(p.img ? { image: [`${SITE_URL}${p.img}`] } : {}),
+      ...(p.img || p.imgs?.length
+        ? {
+            image: (p.imgs?.length ? p.imgs.map((x) => x.img) : [p.img])
+              .filter(Boolean)
+              .map((u) => `${SITE_URL}${u}`),
+          }
+        : {}),
       ...(p.desc ? { description: p.desc } : {}),
       ...(p.rich?.mfr ? { manufacturer: { '@type': 'Organization', ...p.rich.mfr } } : {}),
       ...(Object.keys(p.f || {}).length

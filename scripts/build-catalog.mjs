@@ -115,6 +115,9 @@ for (const p of products) {
     b: p.bn,
     path: pcPath(p),
     img: gorsel(p.img),
+    imgs: Array.isArray(p.imgs) && p.imgs.length
+      ? p.imgs.map((x) => ({ img: gorsel(x.img), th: gorsel(x.th) }))
+      : null,
     desc: p.ld || p.sd || '',
     f: p.f || {},
     cat: catName.get(p.pc) || catName.get(p.cats[0]) || 'Ürünler',

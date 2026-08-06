@@ -14,6 +14,9 @@ export default function ProductDetail({ product }) {
   const [qty, setQty] = useState(1);
   const [cond, setCond] = useState(p.cond || 'Sıfır');
   const [openFaq, setOpenFaq] = useState(0);
+  const gallery = p.gallery?.length ? p.gallery : p.img ? [{ img: p.img, th: p.img }] : [];
+  const [activeImg, setActiveImg] = useState(0);
+  const mainImg = gallery[activeImg]?.img || p.img;
 
   function addToQuote() {
     for (let i = 0; i < qty; i++) addItem(p.code, cond);
@@ -36,11 +39,26 @@ export default function ProductDetail({ product }) {
 
       <div className="ks-detail-top">
         <div className="ks-gallery">
-          {p.img ? (
-            <img src={p.img} alt={p.name} className="ks-gallery-main ks-gallery-img" loading="eager" />
+          {mainImg ? (
+            <img src={mainImg} alt={p.name} className="ks-gallery-main ks-gallery-img" loading="eager" />
           ) : (
             <Placeholder w={600} h={460} label={`${p.code} — görsel hazırlanıyor`} className="ks-gallery-main" />
           )}
+          {gallery.length > 1 ? (
+            <div className="ks-gallery-thumbs">
+              {gallery.map((g, i) => (
+                <button
+                  type="button"
+                  key={g.img}
+                  className={`ks-gallery-thumb${i === activeImg ? ' is-active' : ''}`}
+                  onClick={() => setActiveImg(i)}
+                  aria-label={`Görsel ${i + 1}`}
+                >
+                  <img src={g.th || g.img} alt={`${p.name} — görsel ${i + 1}`} loading="lazy" />
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <div className="ks-buy">
