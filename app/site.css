@@ -1698,3 +1698,14 @@
 .ks-blog-feat { grid-template-columns: 1fr; text-decoration: none; color: inherit; }
 .ks-blogcard { cursor: pointer; }
 .ks-blogcard .ks-readmore, .ks-blog-feat .ks-readmore { display: inline-flex; align-items: center; gap: 6px; }
+
+/* ---- Hızlı teklif: doğrulama + referans ---- */
+.ks-field-err { color: #c0392b; font-size: 12.5px; margin: 4px 2px 2px; }
+.ks-form-err { color: #c0392b; background: #fdecea; border: 1px solid #f5c6c2; border-radius: 6px; padding: 8px 12px; font-size: 13px; margin-top: 12px; }
+.ks-drawer-fields input.is-error { border-color: #e0554b; box-shadow: 0 0 0 2px rgba(224, 85, 75, 0.12); }
+.ks-drawer-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+.ks-done-ref { width: 100%; border: 1px solid var(--line); border-radius: 8px; margin: 6px 0 4px; overflow: hidden; }
+.ks-done-ref-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 14px; }
+.ks-done-ref-row + .ks-done-ref-row { border-top: 1px solid var(--line); }
+.ks-done-ref-row span { color: var(--muted); font-size: 13px; }
+.ks-done-ref-row b { font: 700 15px var(--font); color: var(--ink-strong); letter-spacing: 0.02em; font-variant-numeric: tabular-nums; }

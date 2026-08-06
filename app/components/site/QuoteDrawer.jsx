@@ -7,10 +7,17 @@ export default function QuoteDrawer() {
     open,
     submitted,
     rows,
+    name,
+    contact,
+    errors,
+    loading,
+    result,
     closeQuote,
     patchRow,
     removeRow,
     addRow,
+    updateName,
+    updateContact,
     submitQuote,
     resetQuote,
   } = useQuote();
@@ -79,15 +86,32 @@ export default function QuoteDrawer() {
               <button type="button" className="ks-addrow" onClick={addRow}>
                 + Satır ekle
               </button>
+              {errors.rows ? <div className="ks-field-err">{errors.rows}</div> : null}
 
               <div className="ks-drop">
                 Ürün listenizi veya ekleri buraya sürükleyin (.pdf, .xls, .jpg — maks. 20MB)
               </div>
 
               <div className="ks-drawer-fields">
-                <input placeholder="Ad Soyad / Firma" />
-                <input placeholder="E-posta veya telefon" />
+                <input
+                  className={errors.name ? 'is-error' : ''}
+                  placeholder="Ad Soyad / Firma"
+                  value={name}
+                  onChange={(e) => updateName(e.target.value)}
+                  aria-invalid={errors.name ? 'true' : 'false'}
+                />
+                {errors.name ? <div className="ks-field-err">{errors.name}</div> : null}
+                <input
+                  className={errors.contact ? 'is-error' : ''}
+                  placeholder="E-posta veya telefon"
+                  value={contact}
+                  onChange={(e) => updateContact(e.target.value)}
+                  aria-invalid={errors.contact ? 'true' : 'false'}
+                />
+                {errors.contact ? <div className="ks-field-err">{errors.contact}</div> : null}
               </div>
+
+              {errors.form ? <div className="ks-form-err">{errors.form}</div> : null}
 
               <div className="ks-drawer-steps">
                 <div><b>1.</b> Hızlı talep için bilgilerinizi girin</div>
@@ -96,20 +120,38 @@ export default function QuoteDrawer() {
               </div>
             </div>
             <div className="ks-drawer-foot">
-              <button type="button" className="ks-drawer-submit" onClick={submitQuote}>
-                TEKLİF TALEBİ GÖNDER
+              <button
+                type="button"
+                className="ks-drawer-submit"
+                onClick={submitQuote}
+                disabled={loading}
+              >
+                {loading ? 'GÖNDERİLİYOR…' : 'TEKLİF TALEBİ GÖNDER'}
               </button>
             </div>
           </>
         ) : (
           <div className="ks-drawer-done">
             <div className="ks-done-check">✓</div>
-            <div className="ks-done-title">TEŞEKKÜRLER!</div>
+            <div className="ks-done-title">TALEBİNİZ ALINDI</div>
+            {result ? (
+              <div className="ks-done-ref">
+                <div className="ks-done-ref-row">
+                  <span>Talep No</span>
+                  <b>{result.ref}</b>
+                </div>
+                <div className="ks-done-ref-row">
+                  <span>Tarih / Saat</span>
+                  <b>{result.tsLocal}</b>
+                </div>
+              </div>
+            ) : null}
             <div className="ks-done-text">
-              En zor kısmı hallettiniz. Temsilciniz en kısa sürede teklifinizle dönüş yapacak.
+              Temsilciniz en kısa sürede teklifinizle dönüş yapacak. Takip için bu talep numarasını
+              saklayın.
             </div>
             <button type="button" className="ks-done-btn" onClick={resetQuote}>
-              ALIŞVERİŞE DEVAM ET
+              YENİ TALEP / ALIŞVERİŞE DEVAM
             </button>
           </div>
         )}
