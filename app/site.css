@@ -1709,3 +1709,22 @@
 .ks-done-ref-row + .ks-done-ref-row { border-top: 1px solid var(--line); }
 .ks-done-ref-row span { color: var(--muted); font-size: 13px; }
 .ks-done-ref-row b { font: 700 15px var(--font); color: var(--ink-strong); letter-spacing: 0.02em; font-variant-numeric: tabular-nums; }
+
+/* ---- Admin: teklif talepleri ---- */
+.ks-admin-gate { max-width: 420px; margin: 40px auto; text-align: center; }
+.ks-admin-gate h1 { font: 700 26px var(--cond); letter-spacing: 0.02em; margin: 0 0 10px; }
+.ks-admin-gate p { color: var(--muted); margin: 0 0 16px; }
+.ks-admin-form { display: flex; gap: 8px; }
+.ks-admin-form input { flex: 1; padding: 11px 14px; border: 1px solid var(--line-2); border-radius: 6px; font-size: 14px; }
+.ks-admin-form .ks-drawer-submit { width: auto; padding: 11px 20px; }
+.ks-admin-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+.ks-admin-head h1 { font: 700 26px var(--cond); letter-spacing: 0.02em; margin: 0; }
+.ks-admin-meta { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 14px; }
+.ks-admin-json { color: var(--amber-ink); font-weight: 600; text-decoration: none; border-bottom: 1px solid var(--line-2); }
+.ks-admin-tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+.ks-admin-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ks-admin-table th, .ks-admin-table td { border-bottom: 1px solid var(--line); padding: 10px 12px; text-align: left; vertical-align: top; }
+.ks-admin-table thead th { background: var(--navy); color: #fff; font: 600 12px var(--font); letter-spacing: 0.04em; position: sticky; top: 0; }
+.ks-admin-table tbody tr:nth-child(even) { background: #f6f8fb; }
+.ks-admin-table .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; }
+.ks-admin-table .nowrap { white-space: nowrap; font-variant-numeric: tabular-nums; }
