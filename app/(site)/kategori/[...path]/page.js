@@ -33,7 +33,10 @@ export async function generateMetadata({ params }) {
   if (!cat) return { title: 'Kategori bulunamadı' };
   return {
     title: `${cat.name} | Klimasun`,
-    description: `${cat.name} kategorisinde ${cat.count.toLocaleString(TR)} ürün — fiyat için teklif sepetine ekleyin, aynı gün dönüş yapalım.`,
+    description: (cat.intro
+      ? cat.intro
+      : `${cat.name} kategorisinde ${cat.count.toLocaleString(TR)} ürün — fiyat için teklif sepetine ekleyin, aynı gün dönüş yapalım.`
+    ).slice(0, 155),
     alternates: { canonical },
   };
 }
@@ -76,10 +79,14 @@ export default async function KategoriPage({ params }) {
             / <span className="ks-crumb-cur">{cat.name}</span>
           </div>
           <h1>{cat.name}</h1>
-          <p>
-            Bu kategoride {cat.count.toLocaleString(TR)} ürün listeleniyor. Fiyat görmek için
-            ürünleri teklif sepetine ekleyin — teklifiniz aynı gün hazırlanır.
-          </p>
+          {cat.intro ? (
+            <p>{cat.intro}</p>
+          ) : (
+            <p>
+              Bu kategoride {cat.count.toLocaleString(TR)} ürün listeleniyor. Fiyat görmek için
+              ürünleri teklif sepetine ekleyin — teklifiniz aynı gün hazırlanır.
+            </p>
+          )}
         </div>
       </div>
 

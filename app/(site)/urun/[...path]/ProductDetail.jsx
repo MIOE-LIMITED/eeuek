@@ -9,9 +9,11 @@ import { money, discountPct } from '@/lib/price';
 
 export default function ProductDetail({ product }) {
   const p = product;
-  const { addItem } = useQuote();
+  const r = p.rich || null;
+  const { addItem, openQuote } = useQuote();
   const [qty, setQty] = useState(1);
   const [cond, setCond] = useState(p.cond || 'Sıfır');
+  const [openFaq, setOpenFaq] = useState(0);
 
   function addToQuote() {
     for (let i = 0; i < qty; i++) addItem(p.code, cond);
@@ -47,6 +49,13 @@ export default function ProductDetail({ product }) {
             <span className={`ks-badge ${p.stok ? 'stok' : 'temin'}`}>{p.badge}</span>
           </div>
           <h1>{p.name}</h1>
+          {r?.badges?.length ? (
+            <div className="ks-hero-badges">
+              {r.badges.map((b) => (
+                <span className="ks-hero-badge" key={b}>{b}</span>
+              ))}
+            </div>
+          ) : null}
           <div className="ks-buy-facts">
             <div>Marka: <b>{p.brand}</b></div>
             <div>Kategori: <Link href={p.categoryHref} style={{ fontWeight: 600 }}>{p.category}</Link></div>
@@ -112,6 +121,11 @@ export default function ProductDetail({ product }) {
             >
               ✆ WhatsApp&apos;tan Sor — 0505 959 87 70
             </a>
+            {r?.datasheet ? (
+              <a href={r.datasheet} className="ks-buy-datasheet" target="_blank" rel="noreferrer">
+                ▦ Teknik Veri Sayfası
+              </a>
+            ) : null}
             <div className="ks-buy-note">
               Satışlarımız kurumsaldır; fiyat teklifle iletilir. Stoktan teslim — aynı iş günü kargoya
               hazır (kargo hariç). F-Gaz sertifikalı servis.
@@ -119,6 +133,23 @@ export default function ProductDetail({ product }) {
           </div>
         </div>
       </div>
+
+      {r?.highlights?.length ? (
+        <div className="ks-rich-wrap">
+          <h2 className="ks-specs-h">NEDEN BU CİHAZ?</h2>
+          <div className="ks-highlights">
+            {r.highlights.map((h) => (
+              <div className="ks-highlight" key={h.title}>
+                <div className="ks-highlight-ico" aria-hidden="true">{h.icon}</div>
+                <div>
+                  <b>{h.title}</b>
+                  <p>{h.text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {p.specs.length > 0 && (
         <div className="ks-specs-wrap">
@@ -133,6 +164,93 @@ export default function ProductDetail({ product }) {
           </div>
         </div>
       )}
+
+      {r?.system?.length ? (
+        <div className="ks-rich-wrap">
+          <h2 className="ks-specs-h">SİSTEM KURGUSU — NE ALMAM GEREKİYOR?</h2>
+          <p className="ks-rich-lead">
+            Tek bir dedektör bir sistem değildir. Tipik bir makine dairesi kurulumu şu
+            bileşenlerden oluşur:
+          </p>
+          <ol className="ks-syslist">
+            {r.system.map((s) => (
+              <li key={s.name}>
+                <b>{s.name}</b> — {s.note}
+              </li>
+            ))}
+          </ol>
+          <p className="ks-rich-note">
+            Kaç dedektör gerekir? Hacim, ekipman sayısı ve ölü bölgelere göre değişir. Hızlı teklif
+            formuna makine dairesi ölçüsü ve chiller/kompresör sayısını yazın — yerleşim önerisiyle
+            birlikte dönüş yapalım.
+          </p>
+        </div>
+      ) : null}
+
+      {r?.install?.length ? (
+        <div className="ks-rich-wrap">
+          <h2 className="ks-specs-h">NEREYE MONTE EDİLİR?</h2>
+          <ul className="ks-ticklist">
+            {r.install.map((it) => (
+              <li key={it}>{it}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {r?.apps?.length ? (
+        <div className="ks-rich-wrap">
+          <h2 className="ks-specs-h">UYGULAMA ALANLARI</h2>
+          <div className="ks-chips">
+            {r.apps.map((a) => (
+              <span className="ks-chip" key={a}>{a}</span>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {r?.faq?.length ? (
+        <div className="ks-rich-wrap">
+          <h2 className="ks-specs-h">SIKÇA SORULAN SORULAR</h2>
+          <div className="ks-faq">
+            {r.faq.map((f, i) => (
+              <div className={`ks-faq-item${openFaq === i ? ' is-open' : ''}`} key={f.q}>
+                <button type="button" className="ks-faq-q" onClick={() => setOpenFaq(openFaq === i ? -1 : i)}>
+                  <span>{f.q}</span>
+                  <span className="ks-faq-caret" aria-hidden="true">{openFaq === i ? '−' : '+'}</span>
+                </button>
+                {openFaq === i ? <div className="ks-faq-a">{f.a}</div> : null}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {r?.links?.length ? (
+        <div className="ks-rich-wrap">
+          <h2 className="ks-specs-h">DEVAMINI OKUYUN</h2>
+          <ul className="ks-linklist">
+            {r.links.map((l) => (
+              <li key={l.href}>
+                <a href={l.href} target="_blank" rel="noreferrer">{l.label} →</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {r?.cta ? (
+        <div className="ks-rich-cta">
+          <div className="t">{r.cta.title}</div>
+          <p>{r.cta.text}</p>
+          <button type="button" className="ks-btn-amber" onClick={openQuote}>
+            ✎ HIZLI TEKLİF GÖNDER
+          </button>
+          <div className="ks-rich-cta-side">
+            ☎ 0505 959 87 70 · WhatsApp 0505 959 87 70 · info@klimasun.com.tr
+          </div>
+        </div>
+      ) : null}
 
       {p.related.length > 0 && (
         <div className="ks-related-wrap">

@@ -26,8 +26,8 @@ export async function generateMetadata({ params }) {
   const { p, canonical } = await resolve(params);
   if (!p) return { title: 'Ürün bulunamadı' };
   return {
-    title: `${p.n} | Klimasun`,
-    description: (p.desc || `${p.n} — ${p.b}. Kurumsal teklif için ürünü sepete ekleyin.`).slice(0, 155),
+    title: p.mt || `${p.n} | Klimasun`,
+    description: (p.md || p.desc || `${p.n} — ${p.b}. Kurumsal teklif için ürünü sepete ekleyin.`).slice(0, 160),
     alternates: { canonical },
   };
 }
@@ -53,6 +53,7 @@ export default async function ProductPage({ params }) {
     description: p.desc,
     img: p.img,
     price: p.prc || null,
+    rich: p.rich || null,
     specs: Object.entries(p.f || {}),
     related: p.rel || [],
   };
@@ -75,19 +76,44 @@ export default async function ProductPage({ params }) {
       url: `${SITE_URL}${canonical}`,
       ...(p.img ? { image: [`${SITE_URL}${p.img}`] } : {}),
       ...(p.desc ? { description: p.desc } : {}),
+      ...(p.rich?.mfr ? { manufacturer: { '@type': 'Organization', ...p.rich.mfr } } : {}),
+      ...(Object.keys(p.f || {}).length
+        ? {
+            additionalProperty: Object.entries(p.f).map(([name, value]) => ({
+              '@type': 'PropertyValue',
+              name,
+              value: String(value),
+            })),
+          }
+        : {}),
       ...(p.prc
         ? {
             offers: {
               '@type': 'Offer',
               price: p.prc.sale,
               priceCurrency: p.prc.cur || 'EUR',
+              itemCondition: 'https://schema.org/NewCondition',
               availability: p.stok
                 ? 'https://schema.org/InStock'
                 : 'https://schema.org/PreOrder',
               url: `${SITE_URL}${canonical}`,
+              seller: { '@type': 'Organization', name: 'Klimasun' },
             },
           }
-        : {}),
+        : p.rich
+          ? {
+              offers: {
+                '@type': 'Offer',
+                priceCurrency: 'EUR',
+                itemCondition: 'https://schema.org/NewCondition',
+                availability: p.stok
+                  ? 'https://schema.org/InStock'
+                  : 'https://schema.org/PreOrder',
+                url: `${SITE_URL}${canonical}`,
+                seller: { '@type': 'Organization', name: 'Klimasun' },
+              },
+            }
+          : {}),
     },
     {
       '@context': 'https://schema.org',
@@ -99,6 +125,19 @@ export default async function ProductPage({ params }) {
         item: c.item,
       })),
     },
+    ...(p.rich?.faq?.length
+      ? [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: p.rich.faq.map((f) => ({
+              '@type': 'Question',
+              name: f.q,
+              acceptedAnswer: { '@type': 'Answer', text: f.a },
+            })),
+          },
+        ]
+      : []),
   ];
 
   return (
