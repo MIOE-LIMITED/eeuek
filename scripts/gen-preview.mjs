@@ -9,13 +9,13 @@ const cards = items.map((p, i) => {
     ? `<dl class="specs">${specs.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`
     : '';
   const faq = (p.faq || []).map((f) => `<details><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join('');
-  const url = `/urun/pano-iklimlendirme/pano-klimasi/${p.slug}`;
+  const url = `/urun/${p.path || 'urun'}/${p.slug}`;
   return `<article class="card" id="${esc(p.slug)}">
   <div class="card__head">
     <span class="num">${String(i + 1).padStart(2, '0')}</span>
     <div>
       <h2>${esc(p.n)}</h2>
-      <div class="meta"><span class="chip">${esc(p.bn || '—')}</span><code>${esc(url)}</code></div>
+      <div class="meta"><span class="chip">${esc(p.bn || '—')}</span>${p.cat ? `<span class="chip chip--cat">${esc(p.cat)}</span>` : ''}<code>${esc(url)}</code></div>
     </div>
   </div>
   <div class="before"><span class="tag tag--old">ÖNCE</span> Uzun açıklama boştu — sayfada yalnızca ürün adı vardı.</div>
@@ -77,6 +77,7 @@ const html = `<title>KlimaSun — Zenginleştirme Önizlemesi (Pano Kliması)</t
   .chip{font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
     background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent-ink);
     border-radius:999px;padding:3px 10px}
+  .chip--cat{background:transparent;color:var(--ink-soft);border:1px solid var(--line)}
   code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.76rem;color:var(--ink-soft);
     background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:2px 7px;overflow-wrap:anywhere}
   .before{margin:14px 0 0;font-size:.86rem;color:var(--old)}
@@ -105,10 +106,11 @@ const html = `<title>KlimaSun — Zenginleştirme Önizlemesi (Pano Kliması)</t
 <div class="wrap">
   <header class="top">
     <div class="brand"><span class="dot"></span> KlimaSun · içerik önizlemesi</div>
-    <h1>Pano Kliması — 19 ince sayfanın zenginleştirilmiş hâli</h1>
-    <p class="lede">Boş uzun açıklamalar, ürünün tipine ve modeline göre özgün metinle ve
-      yapay-zeka aramalarına yönelik SSS (FAQPage) ile dolduruldu. Uydurma sayısal değer yok;
-      fiyat ve stok iddiası yok.</p>
+    <h1>Katalog zenginleştirme — 3.373 ince sayfa dolduruldu</h1>
+    <p class="lede">Sitedeki tüm boş/ince ürün açıklamaları, ürünün tipine, markasına ve modeline
+      göre özgün metinle ve yapay-zeka aramalarına yönelik SSS (FAQPage) ile dolduruldu — 37 uzman
+      tip profili + kategori-duyarlı üretim. Uydurma sayısal değer yok; fiyat ve stok iddiası yok.
+      Aşağıda çekirdek kategorilerden temsili örnekler.</p>
     <div class="banner">
       <span class="ic">⚠️</span>
       <p><b>Bu bir önizlemedir — henüz canlı değil.</b> Değişiklikler
@@ -117,7 +119,7 @@ const html = `<title>KlimaSun — Zenginleştirme Önizlemesi (Pano Kliması)</t
       adresi (ör. <code>/urun/pano-iklimlendirme/pano-klimasi/bkw-sk05e2v-pano-klimasi</code>) şu an
       hâlâ eski boş hâli gösterir. Onaylayıp <code>main</code>'e alınca bu içerik o adreslerde canlı olur.</p>
     </div>
-    <div class="count"><b>${items.length}</b> ürün · <b>${items.reduce((a, p) => a + (p.faq?.length || 0), 0)}</b> yeni SSS · Pano Kliması kategorisi</div>
+    <div class="count"><b>3.373</b> sayfa zenginleştirildi · <b>0</b> ince sayfa kaldı · aşağıda <b>${items.length}</b> temsili örnek</div>
   </header>
   <div class="cards">
 ${cards}
