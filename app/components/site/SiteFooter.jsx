@@ -23,7 +23,7 @@ export default function SiteFooter() {
           </div>
           <div className="ks-footer-info">
             <div className="ks-u-strong">☎ 0505 959 87 70 · WhatsApp 0505 959 87 70</div>
-            <div>✉ info@klimasun.com.tr</div>
+            <div>✉ info@klimasun.com</div>
             <div style={{ marginTop: 10 }}>
               Klimasun Endüstriyel İklimlendirme, İstanbul — Türkiye geneli tedarik &amp; servis
             </div>

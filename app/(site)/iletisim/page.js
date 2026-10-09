@@ -9,7 +9,7 @@ const TOPICS = ['Teklif', 'Servis', 'Cihaz Satışı', 'Diğer'];
 const CARDS = [
   { cls: '', ico: '☎', lbl: 'TELEFON', val: '0505 959 87 70', sub: 'Hafta içi 08:30 – 18:00' },
   { cls: 'wa', ico: '✆', lbl: 'WHATSAPP', val: '0505 959 87 70', sub: 'Genellikle dakikalar içinde yanıt' },
-  { cls: '', ico: '✉', lbl: 'E-POSTA', val: 'info@klimasun.com.tr', sub: 'Teklif ve toplu liste için' },
+  { cls: '', ico: '✉', lbl: 'E-POSTA', val: 'info@klimasun.com', sub: 'Teklif ve toplu liste için' },
   { cls: '', ico: '📍', lbl: 'ADRES', val: 'İstanbul, Türkiye', sub: 'Türkiye geneli tedarik & servis' },
 ];
 
