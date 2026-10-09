@@ -18,6 +18,8 @@
 | 5 | Kök SPF kaydı **tek kayıt** olsun: `v=spf1 include:_spf.mx.cloudflare.net ~all` | ☐ |
 | 6 | **Email → DMARC Management → Enable**. Oluşan `_dmarc` kaydının sonuna `; np=reject` ekle (p=none kalsın) | ☐ |
 | 7 | `mail._domainkey` TXT kaydını sil (eski Yandex DKIM, artık kullanılmayacak) | ☐ |
+| 7a | DNS'e TXT ekle: ad `_smtp._tls`, değer `v=TLSRPTv1; rua=mailto:info@erdincklima.com` (TLS hata raporları) | ☐ |
+| 7b | **DNS → Settings → DNSSEC → Enable**. Çıkan DS kaydını (Key tag, Algorithm 13, Digest type 2, Digest) Eşref Bey'e ilet; alan adının kayıt firmasına girilecek | ☐ |
 | 8 | Test: dışarıdan bir adresten `info@klimasun.com` ve `deneme@klimasun.com`'a posta at; ikisinin de info@erdincklima.com'a düştüğünü teyit et | ☐ |
 | 9 | 8. adım başarılıysa bu daldaki PR'ı `main`'e merge et (sitedeki adres `info@klimasun.com` olur) | ☐ |
 
