@@ -11,10 +11,10 @@
 
 | # | İş | ✓ |
 |---|---|---|
-| 1 | Cloudflare → **klimasun.com** → **Email → Email Routing → Get started** | ☐ |
+| 1 | Cloudflare → **klimasun.com** → **Email → Email Routing → Get started** | ✓ |
 | 2 | Custom address: `info` → Destination: `info@erdincklima.com` → Create. info@erdincklima.com'a gelen doğrulama postasındaki bağlantıyı Eşref Bey'e onaylat | ☐ |
-| 3 | "Add records and enable" → Yandex MX (`mx.yandex.net`) silinsin, Cloudflare MX'leri (route1/2/3.mx.cloudflare.net) eklensin | ☐ |
-| 4 | **Routing rules → Catch-all → Action: Send to email** `info@erdincklima.com` → **Enable** (diğer tüm adresler de merkeze gelsin) | ☐ |
+| 3 | "Add records and enable" → Yandex MX (`mx.yandex.net`) silinsin, Cloudflare MX'leri (route1/2/3.mx.cloudflare.net) eklensin | ✓ |
+| 4 | **Routing rules → Catch-all → Action: Send to email** `info@erdincklima.com` → **Enable** (diğer tüm adresler de merkeze gelsin) | ✓ |
 | 5 | Kök SPF kaydı **tek kayıt** olsun: `v=spf1 include:_spf.mx.cloudflare.net ~all` | ✓ |
 | 6 | **Email → DMARC Management → Enable**. Oluşan `_dmarc` kaydının sonuna `; np=reject` ekle (p=none kalsın) | ☐ |
 | 7 | `mail._domainkey` TXT kaydını sil (eski Yandex DKIM, artık kullanılmayacak) | ✓ |
@@ -46,7 +46,8 @@
 - 2: Hedef adres `info@erdincklima.com` Cloudflare'e eklendi, doğrulama postası gönderildi — **Eşref Bey onaylayacak**.
 - 5, 7, 7a, 7b yapıldı.
 - 7b DS kaydı (Natro'ya girilecek): Key tag `2371`, Algorithm `13`, Digest type `2`, Digest `4E2D51E2BDDCBE04180760B4BE172897E0B83FC2E0E1C11DB8EF7B94FDE191BB`
-- 1, 3, 4, 6 bekliyor (Email Routing panelden açılacak). MX hâlâ `mx.yandex.net`.
+- 1, 3, 4 yapıldı (10.10): Email Routing açık, MX `route1/2/3.mx.cloudflare.net`, catch-all → `info@erdincklima.com`. Yanlış adla duran eski DKIM kopyası `mail.klimasun.com` TXT de silindi.
+- **Bekleyen:** 2 (hedef adres doğrulaması — onaylanana kadar klimasun.com'a gelen posta teslim edilmez), 6 (DMARC), DS'nin Natro'ya girilmesi, 8 (test), 9 (merge).
 
 ## Bu daldaki kod değişikliği
 
