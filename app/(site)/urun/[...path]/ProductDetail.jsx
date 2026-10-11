@@ -355,7 +355,7 @@ export default function ProductDetail({ product }) {
             ✎ HIZLI TEKLİF GÖNDER
           </button>
           <div className="ks-rich-cta-side">
-            ☎ 0505 959 87 70 · WhatsApp 0505 959 87 70 · info@klimasun.com.tr
+            ☎ 0505 959 87 70 · WhatsApp 0505 959 87 70 · info@klimasun.com
           </div>
         </div>
       ) : null}

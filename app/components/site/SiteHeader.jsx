@@ -41,7 +41,7 @@ export default function SiteHeader() {
           <div className="ks-utility-left">
             <a href="tel:+905059598770" className="ks-u-strong">☎ 0505 959 87 70</a>
             <a href="https://wa.me/905059598770" className="ks-u-strong">WhatsApp 0505 959 87 70</a>
-            <a href="mailto:info@klimasun.com.tr" className="ks-u-mail">info@klimasun.com.tr</a>
+            <a href="mailto:info@klimasun.com" className="ks-u-mail">info@klimasun.com</a>
           </div>
           <div className="ks-spacer" />
           <div className="ks-utility-right">
