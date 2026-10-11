@@ -12,7 +12,7 @@
 | # | İş | ✓ |
 |---|---|---|
 | 1 | Cloudflare → **klimasun.com** → **Email → Email Routing → Get started** | ✓ |
-| 2 | Custom address: `info` → Destination: `info@erdincklima.com` → Create. info@erdincklima.com'a gelen doğrulama postasındaki bağlantıyı Eşref Bey'e onaylat | ☐ |
+| 2 | Custom address: `info` → Destination: `info@erdincklima.com` → Create. info@erdincklima.com'a gelen doğrulama postasındaki bağlantıyı Eşref Bey'e onaylat | ✓ |
 | 3 | "Add records and enable" → Yandex MX (`mx.yandex.net`) silinsin, Cloudflare MX'leri (route1/2/3.mx.cloudflare.net) eklensin | ✓ |
 | 4 | **Routing rules → Catch-all → Action: Send to email** `info@erdincklima.com` → **Enable** (diğer tüm adresler de merkeze gelsin) | ✓ |
 | 5 | Kök SPF kaydı **tek kayıt** olsun: `v=spf1 include:_spf.mx.cloudflare.net ~all` | ✓ |
@@ -20,8 +20,8 @@
 | 7 | `mail._domainkey` TXT kaydını sil (eski Yandex DKIM, artık kullanılmayacak) | ✓ |
 | 7a | DNS'e TXT ekle: ad `_smtp._tls`, değer `v=TLSRPTv1; rua=mailto:info@erdincklima.com` (TLS hata raporları) | ✓ |
 | 7b | **DNS → Settings → DNSSEC → Enable**. Çıkan DS kaydını (Key tag, Algorithm 13, Digest type 2, Digest) Eşref Bey'e ilet; alan adının kayıt firmasına girilecek | ✓ |
-| 8 | Test: dışarıdan bir adresten `info@klimasun.com` ve `deneme@klimasun.com`'a posta at; ikisinin de info@erdincklima.com'a düştüğünü teyit et | ☐ |
-| 9 | 8. adım başarılıysa bu daldaki PR'ı `main`'e merge et (sitedeki adres `info@klimasun.com` olur) | ☐ |
+| 8 | Test: dışarıdan bir adresten `info@klimasun.com` ve `deneme@klimasun.com`'a posta at; ikisinin de info@erdincklima.com'a düştüğünü teyit et | ✓ |
+| 9 | 8. adım başarılıysa bu daldaki PR'ı `main`'e merge et (sitedeki adres `info@klimasun.com` olur) | ✓ |
 
 **Not:** klimasun.com'dan posta **gönderilmeyecek**; yalnız gelen posta yönlendirilecek.
 
@@ -47,7 +47,11 @@
 - 5, 7, 7a, 7b yapıldı.
 - 7b DS kaydı (Natro'ya girilecek): Key tag `2371`, Algorithm `13`, Digest type `2`, Digest `4E2D51E2BDDCBE04180760B4BE172897E0B83FC2E0E1C11DB8EF7B94FDE191BB`
 - 1, 3, 4 yapıldı (10.10): Email Routing açık, MX `route1/2/3.mx.cloudflare.net`, catch-all → `info@erdincklima.com`. Yanlış adla duran eski DKIM kopyası `mail.klimasun.com` TXT de silindi.
-- **Bekleyen:** 2 (hedef adres doğrulaması — onaylanana kadar klimasun.com'a gelen posta teslim edilmez), 6 (DMARC), DS'nin Natro'ya girilmesi, 8 (test), 9 (merge).
+- 2: Eşref Bey doğrulamayı onayladı (10.10 15:31 UTC).
+- 11.10: Panelde info@ kuralı yoktu, catch-all kapalı ve "drop" idi; bu yüzden test postaları `550 5.1.1 Address does not exist` ile dönüyordu. API ile düzeltildi: `info@klimasun.com` → `info@erdincklima.com` kuralı ve catch-all → `info@erdincklima.com` (ikisi de açık).
+- 8: 11.10 17:58 UTC testleri (info@ ve deneme@) geri dönmedi; Cloudflare Email Routing kayıtlarında ikisi de `delivered / forward`.
+- 9: PR merge edildi.
+- **Bekleyen:** 6 (DMARC Management panelden açılacak, ardından `; np=reject`), DS'nin Natro'da yayına girmesi (talep #3242947).
 
 ## Bu daldaki kod değişikliği
 
